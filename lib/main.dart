@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/constants/supabase_config.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/bloc/auth_bloc.dart';
+import 'features/auth/bloc/auth_event.dart';
 import 'features/auth/data/auth_repository.dart';
 import 'features/auth/presentation/screens/splash_screen.dart';
 
@@ -63,6 +64,11 @@ class _InternloomAppState extends State<InternloomApp> {
 
   Future<void> _processDeepLink(Uri uri) async {
     final uriStr = uri.toString();
+    if (uriStr.contains('reset-password-callback') || uriStr.contains('type=recovery')) {
+      if (mounted) {
+        context.read<AuthBloc>().add(const PasswordRecoveryRequested());
+      }
+    }
     if (uriStr.startsWith('io.internloom.app://')) {
       try {
         await Supabase.instance.client.auth.getSessionFromUrl(uri);

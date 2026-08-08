@@ -8,11 +8,12 @@ class AuthRepository {
   AuthRepository({SupabaseClient? client})
       : _supabase = client ?? Supabase.instance.client;
 
-  /// Returns the appropriate redirect URL for OAuth flows.
-  /// On web, Supabase handles redirects natively (null = use Supabase default).
-  /// On mobile, we use a custom URI scheme registered in AndroidManifest.xml / Info.plist.
-  static String? get _redirectTo =>
-      kIsWeb ? null : 'io.internloom.app://login-callback';
+  /// Returns the appropriate redirect URL for OAuth and email flows.
+  /// On web, we use the current page origin (e.g. http://localhost:3000) so
+  /// Supabase redirects back to the running dev server and NOT the Site URL.
+  /// On mobile, we use a custom URI scheme registered in AndroidManifest / Info.plist.
+  static String get _redirectTo =>
+      kIsWeb ? Uri.base.origin : 'io.internloom.app://login-callback';
 
   User? get currentUser => _supabase.auth.currentUser;
   Session? get currentSession => _supabase.auth.currentSession;
@@ -64,14 +65,14 @@ class AuthRepository {
   }
 
   /// Triggers password reset email via Supabase Auth.
-  /// Uses deep link scheme on mobile (io.internloom.app://reset-password-callback)
-  /// or null on Web so Supabase uses current origin.
+  /// redirectTo is derived from _redirectTo: web → current origin, mobile → custom scheme.
   Future<void> resetPasswordForEmail({required String email}) async {
-    final String? redirect =
-        kIsWeb ? null : 'io.internloom.app://reset-password-callback';
+    final String passwordResetRedirect = kIsWeb
+        ? Uri.base.origin
+        : 'io.internloom.app://reset-password-callback';
     await _supabase.auth.resetPasswordForEmail(
       email.trim(),
-      redirectTo: redirect,
+      redirectTo: passwordResetRedirect,
     );
   }
 

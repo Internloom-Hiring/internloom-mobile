@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import '../../../core/utils/error_formatter.dart';
@@ -57,6 +58,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onAppStarted(AppStarted event, Emitter<AuthState> emit) async {
     try {
+      // On web, check the URL fragment BEFORE checking auth session.
+      // When a user clicks a password-reset link, Supabase redirects back to
+      // the app with '#access_token=...&type=recovery' in the hash.
+      // isAuthenticated will be true (Supabase set the session), but we must
+      // treat this as a recovery flow, not a normal login.
+      if (kIsWeb) {
+        final fragment = Uri.base.fragment;
+        if (fragment.contains('type=recovery') ||
+            fragment.contains('reset-password-callback')) {
+          emit(const PasswordRecoveryRequired());
+          return;
+        }
+      }
+
       if (authRepository.isAuthenticated && authRepository.currentUser != null) {
         emit(Authenticated(authRepository.currentUser!));
       } else {
