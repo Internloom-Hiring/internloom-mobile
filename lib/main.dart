@@ -1,0 +1,92 @@
+import 'package:app_links/app_links.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'core/constants/supabase_config.dart';
+import 'core/theme/app_theme.dart';
+import 'features/auth/bloc/auth_bloc.dart';
+import 'features/auth/data/auth_repository.dart';
+import 'features/auth/presentation/screens/splash_screen.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Load environment variables if .env asset exists
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (_) {
+    // Falls back to String.fromEnvironment or default configuration
+  }
+
+  // Initialize Supabase SDK safely
+  if (SupabaseConfig.isConfigured) {
+    try {
+      await Supabase.initialize(
+        url: SupabaseConfig.url,
+        publishableKey: SupabaseConfig.anonKey,
+      );
+    } catch (_) {
+      // Handled during auth repository operations
+    }
+  }
+
+  runApp(const InternloomApp());
+}
+
+class InternloomApp extends StatefulWidget {
+  const InternloomApp({super.key});
+
+  @override
+  State<InternloomApp> createState() => _InternloomAppState();
+}
+
+class _InternloomAppState extends State<InternloomApp> {
+  final _appLinks = AppLinks();
+
+  @override
+  void initState() {
+    super.initState();
+    _handleIncomingDeepLinks();
+  }
+
+  /// Listens for incoming deep links (OAuth callbacks from browser)
+  /// and passes the URL to Supabase so it can exchange the code for a session.
+  void _handleIncomingDeepLinks() {
+    // Handle links received while app is already running
+    _appLinks.uriLinkStream.listen((uri) {
+      _processDeepLink(uri);
+    }, onError: (_) {
+      // Silently ignore deep link errors
+    });
+  }
+
+  Future<void> _processDeepLink(Uri uri) async {
+    final uriStr = uri.toString();
+    if (uriStr.startsWith('io.internloom.app://')) {
+      try {
+        await Supabase.instance.client.auth.getSessionFromUrl(uri);
+      } catch (_) {
+        // Silently ignore session parse errors if invalid token
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RepositoryProvider(
+      create: (_) => AuthRepository(),
+      child: BlocProvider(
+        create: (context) => AuthBloc(
+          authRepository: context.read<AuthRepository>(),
+        ),
+        child: MaterialApp(
+          title: 'Internloom Student Portal',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          home: const SplashScreen(),
+        ),
+      ),
+    );
+  }
+}
