@@ -41,6 +41,25 @@ dependencies:
   flutter_dotenv: ^6.0.1
   app_links: ^7.2.1
 
+  # State management for the Student Side profile feature
+  # (lib/features/profile/) — added when that module was merged in.
+  # Nests fine alongside flutter_bloc: BlocProvider (Auth) and
+  # ChangeNotifierProvider (ProfileProvider) coexist in main.dart.
+  provider: ^6.1.2
+
+  # Student Side profile feature also needs these — file uploads
+  # (resume PDF, college ID) and generating ids for project entries.
+  file_picker: ^8.1.2
+  uuid: ^4.4.0
+
+  # profile_service.dart catches PostgrestException directly (to tell
+  # RLS/permission failures apart from generic network errors) — it's
+  # already pulled in transitively by supabase_flutter, but `flutter
+  # analyze` wants it declared explicitly since it's imported by name.
+  # No version constraint: this just makes pub's existing resolution
+  # (whatever supabase_flutter ^2.17.1 already picked) explicit.
+  postgrest: any
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

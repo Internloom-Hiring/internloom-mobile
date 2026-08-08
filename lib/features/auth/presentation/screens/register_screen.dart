@@ -6,10 +6,10 @@ import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/error_banner.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../../core/widgets/social_auth_button.dart';
+import '../../../profile/presentation/screens/profile_gate.dart';
 import '../../bloc/auth_bloc.dart';
 import '../../bloc/auth_event.dart';
 import '../../bloc/auth_state.dart';
-import 'authenticated_placeholder_screen.dart';
 import 'login_screen.dart';
 
 /// Student Registration Screen
@@ -66,7 +66,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             if (state is Authenticated) {
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
-                  builder: (_) => const AuthenticatedPlaceholderScreen(),
+                  builder: (_) => const ProfileGate(),
                 ),
               );
             } else if (state is EmailVerificationRequired) {

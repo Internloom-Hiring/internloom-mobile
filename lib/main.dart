@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/constants/supabase_config.dart';
 import 'core/theme/app_theme.dart';
@@ -10,6 +11,7 @@ import 'features/auth/bloc/auth_bloc.dart';
 import 'features/auth/bloc/auth_event.dart';
 import 'features/auth/data/auth_repository.dart';
 import 'features/auth/presentation/screens/splash_screen.dart';
+import 'features/profile/provider/profile_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -103,11 +105,20 @@ class _InternloomAppState extends State<InternloomApp> {
         create: (context) => AuthBloc(
           authRepository: context.read<AuthRepository>(),
         ),
-        child: MaterialApp(
-          title: 'Internloom Student Portal',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          home: const SplashScreen(),
+        // Student Side's profile feature (features/profile/) uses
+        // Provider/ChangeNotifier rather than bloc — added here as its
+        // own layer rather than converting it to bloc, since
+        // ChangeNotifierProvider and BlocProvider coexist fine in one
+        // widget tree and there was no reason to force a rewrite of an
+        // already-working, already-verified module.
+        child: ChangeNotifierProvider(
+          create: (_) => ProfileProvider(),
+          child: MaterialApp(
+            title: 'Internloom Student Portal',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            home: const SplashScreen(),
+          ),
         ),
       ),
     );

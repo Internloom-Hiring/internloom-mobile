@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/widgets/branded_loading.dart';
+import '../../../profile/presentation/screens/profile_gate.dart';
 import '../../bloc/auth_bloc.dart';
 import '../../bloc/auth_event.dart';
 import '../../bloc/auth_state.dart';
-import 'authenticated_placeholder_screen.dart';
 import 'login_screen.dart';
 import 'update_password_screen.dart';
 
@@ -36,7 +36,7 @@ class _SplashScreenState extends State<SplashScreen> {
         } else if (state is Authenticated) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (_) => const AuthenticatedPlaceholderScreen(),
+              builder: (_) => const ProfileGate(),
             ),
           );
         } else if (state is AuthFailure) {
