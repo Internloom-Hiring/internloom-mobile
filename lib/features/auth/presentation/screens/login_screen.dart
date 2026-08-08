@@ -16,7 +16,11 @@ import 'update_password_screen.dart';
 
 /// Student Login Screen
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  /// Optional error message to display immediately on screen open
+  /// (e.g. when redirected from an expired recovery link).
+  final String? initialError;
+
+  const LoginScreen({super.key, this.initialError});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -27,6 +31,15 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    // Show error passed in from SplashScreen (e.g. expired recovery link)
+    if (widget.initialError != null) {
+      _errorMessage = widget.initialError;
+    }
+  }
 
   @override
   void dispose() {

@@ -58,12 +58,30 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onAppStarted(AppStarted event, Emitter<AuthState> emit) async {
     try {
-      // On web, check the URL fragment BEFORE checking auth session.
-      // When a user clicks a password-reset link, Supabase redirects back to
-      // the app with '#access_token=...&type=recovery' in the hash.
-      // isAuthenticated will be true (Supabase set the session), but we must
-      // treat this as a recovery flow, not a normal login.
       if (kIsWeb) {
+        // Check for error redirects from Supabase (e.g. ?error=access_denied&error_code=otp_expired).
+        // This happens when a recovery/magic link has expired or been used already.
+        final queryParams = Uri.base.queryParameters;
+        if (queryParams.containsKey('error')) {
+          final code = queryParams['error_code'] ?? queryParams['error'] ?? '';
+          final desc = queryParams['error_description']
+                  ?.replaceAll('+', ' ')
+                  .replaceAll('%20', ' ') ??
+              'The link has expired or is invalid.';
+          if (code == 'otp_expired' || code == 'access_denied') {
+            emit(AuthFailure(
+              'This password reset link has expired or was already used. '
+              'Please request a new one. ($desc)',
+            ));
+            return;
+          }
+          emit(AuthFailure(desc));
+          return;
+        }
+
+        // Check the URL fragment for an active recovery session.
+        // In implicit flow, Supabase redirects with
+        // #access_token=...&type=recovery after verifying the OTP.
         final fragment = Uri.base.fragment;
         if (fragment.contains('type=recovery') ||
             fragment.contains('reset-password-callback')) {

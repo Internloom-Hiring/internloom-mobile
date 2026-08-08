@@ -59,7 +59,7 @@ class AuthRepository {
   /// Initiates LinkedIn OIDC flow via Supabase
   Future<bool> signInWithLinkedIn() async {
     return await _supabase.auth.signInWithOAuth(
-      OAuthProvider.linkedin,
+      OAuthProvider.linkedinOidc,
       redirectTo: _redirectTo,
     );
   }

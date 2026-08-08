@@ -39,7 +39,14 @@ class _SplashScreenState extends State<SplashScreen> {
               builder: (_) => const AuthenticatedPlaceholderScreen(),
             ),
           );
-        } else if (state is Unauthenticated || state is AuthFailure) {
+        } else if (state is AuthFailure) {
+          // Surface the error on the login screen (e.g. expired recovery link).
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => LoginScreen(initialError: state.message),
+            ),
+          );
+        } else if (state is Unauthenticated) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (_) => const LoginScreen(),
