@@ -9,7 +9,7 @@ import '../../../../core/widgets/social_provider_button.dart';
 import '../../bloc/authentication_bloc.dart';
 import '../../bloc/authentication_event.dart';
 import '../../bloc/authentication_state.dart';
-import 'authenticated_placeholder_screen.dart';
+import '../../../profile/presentation/screens/profile_gate.dart';
 import 'login_screen.dart';
 
 /// Student Registration Screen
@@ -76,7 +76,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             if (authState is UserAuthenticated) {
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
-                  builder: (_) => const AuthenticatedPlaceholderScreen(),
+                  builder: (_) => const ProfileGate(),
                 ),
               );
             } else if (authState is EmailVerificationPending) {
