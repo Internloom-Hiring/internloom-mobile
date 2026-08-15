@@ -91,31 +91,21 @@ class _GuidedSetupScreenState extends State<GuidedSetupScreen> {
     setState(() => _isUploading = true);
     final provider = context.read<ProfileProvider>();
 
-    var eduOk = false;
-    var skillsOk = false;
-    var resumeOk = false;
-    try {
-      eduOk = await provider.saveEducation(
-        collegeName: _collegeNameController.text.trim(),
-        collegeState: _collegeStateController.text.trim(),
-        collegeCity: _collegeCityController.text.trim(),
-        course: _courseController.text.trim(),
-        branch: _branchController.text.trim(),
-        graduationYear: int.parse(_gradYearController.text.trim()),
-        cgpa: double.parse(_cgpaController.text.trim()),
-      );
-      skillsOk = await provider.saveSkills(_skills);
-      resumeOk = await provider.saveResume(_resumeFile!, fileName: _resumeFileName!);
-    } catch (_) {
-      // ProfileProvider's own save methods should already catch and
-      // report failures via errorMessage/return false rather than
-      // throwing — this is a last-resort net so a bug or an
-      // unanticipated error type still can't leave _isUploading stuck
-      // true forever with no feedback on screen.
-    }
+    final eduOk = await provider.saveEducation(
+      collegeName: _collegeNameController.text.trim(),
+      collegeState: _collegeStateController.text.trim(),
+      collegeCity: _collegeCityController.text.trim(),
+      course: _courseController.text.trim(),
+      branch: _branchController.text.trim(),
+      graduationYear: int.parse(_gradYearController.text.trim()),
+      cgpa: double.parse(_cgpaController.text.trim()),
+    );
+    final skillsOk = await provider.saveSkills(_skills);
+    final resumeOk = await provider.saveResume(_resumeFile!, fileName: _resumeFileName!);
+
+    setState(() => _isUploading = false);
 
     if (!mounted) return;
-    setState(() => _isUploading = false);
 
     if (eduOk && skillsOk && resumeOk) {
       Navigator.of(context).pushAndRemoveUntil(

@@ -5,11 +5,11 @@ import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/error_banner.dart';
 import '../../../../core/widgets/primary_button.dart';
-import '../../../../core/widgets/social_provider_button.dart';
-import '../../bloc/authentication_bloc.dart';
-import '../../bloc/authentication_event.dart';
-import '../../bloc/authentication_state.dart';
+import '../../../../core/widgets/social_auth_button.dart';
 import '../../../profile/presentation/screens/profile_gate.dart';
+import '../../bloc/auth_bloc.dart';
+import '../../bloc/auth_event.dart';
+import '../../bloc/auth_state.dart';
 import 'login_screen.dart';
 
 /// Student Registration Screen
@@ -21,49 +21,39 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _registrationFormKey = GlobalKey<FormState>();
-  final _fullNameInputController = TextEditingController();
-  final _emailInputController = TextEditingController();
-  final _passwordInputController = TextEditingController();
-  final _confirmPasswordInputController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
-  String? _displayedErrorMessage;
-  String? _displayedInfoMessage;
+  String? _errorMessage;
+  String? _infoMessage;
 
   @override
   void dispose() {
-    _fullNameInputController.dispose();
-    _emailInputController.dispose();
-    _passwordInputController.dispose();
-    _confirmPasswordInputController.dispose();
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  void _submitRegistrationForm() {
-    final formInputsAreValid =
-        _registrationFormKey.currentState?.validate() ?? false;
-    if (!formInputsAreValid) return;
-
-    setState(() {
-      _displayedErrorMessage = null;
-      _displayedInfoMessage = null;
-    });
-    context.read<AuthenticationBloc>().add(
-          EmailPasswordRegistrationRequested(
-            fullName: _fullNameInputController.text,
-            email: _emailInputController.text,
-            password: _passwordInputController.text,
-            confirmPassword: _confirmPasswordInputController.text,
-          ),
-        );
-  }
-
-  void _startGoogleOAuthLogin() {
-    context.read<AuthenticationBloc>().add(const GoogleOAuthLoginRequested());
-  }
-
-  void _startLinkedInOAuthLogin() {
-    context.read<AuthenticationBloc>().add(const LinkedInOAuthLoginRequested());
+  void _onRegisterPressed() {
+    if (_formKey.currentState?.validate() ?? false) {
+      setState(() {
+        _errorMessage = null;
+        _infoMessage = null;
+      });
+      context.read<AuthBloc>().add(
+            RegisterSubmitted(
+              fullName: _nameController.text,
+              email: _emailController.text,
+              password: _passwordController.text,
+              confirmPassword: _confirmPasswordController.text,
+            ),
+          );
+    }
   }
 
   @override
@@ -71,25 +61,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: BlocConsumer<AuthenticationBloc, AuthenticationState>(
-          listener: (context, authState) {
-            if (authState is UserAuthenticated) {
+        child: BlocConsumer<AuthBloc, AuthState>(
+          listener: (context, state) {
+            if (state is Authenticated) {
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
                   builder: (_) => const ProfileGate(),
                 ),
               );
-            } else if (authState is EmailVerificationPending) {
+            } else if (state is EmailVerificationRequired) {
               setState(() {
-                _displayedInfoMessage =
-                    'Registration successful! A verification link has been sent to ${authState.pendingEmail}. Please verify your email before logging in.';
+                _infoMessage =
+                    'Registration successful! A verification link has been sent to ${state.email}. Please verify your email before logging in.';
               });
-            } else if (authState is AuthenticationFailed) {
-              setState(() => _displayedErrorMessage = authState.errorMessage);
+            } else if (state is AuthFailure) {
+              setState(() {
+                _errorMessage = state.message;
+              });
             }
           },
-          builder: (context, authState) {
-            final isAuthenticating = authState is AuthenticationInProgress;
+          builder: (context, state) {
+            final isLoading = state is AuthLoading;
 
             return Center(
               child: SingleChildScrollView(
@@ -109,7 +101,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ],
                   ),
                   child: Form(
-                    key: _registrationFormKey,
+                    key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -146,16 +138,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         const SizedBox(height: 28),
 
                         // Error Banner
-                        if (_displayedErrorMessage != null)
+                        if (_errorMessage != null)
                           ErrorBanner(
-                            message: _displayedErrorMessage!,
+                            message: _errorMessage!,
                             onDismiss: () {
-                              setState(() => _displayedErrorMessage = null);
+                              setState(() {
+                                _errorMessage = null;
+                              });
                             },
                           ),
 
                         // Info / Success Banner
-                        if (_displayedInfoMessage != null) ...[
+                        if (_infoMessage != null) ...[
                           Container(
                             margin: const EdgeInsets.only(bottom: 16),
                             padding: const EdgeInsets.all(16),
@@ -173,7 +167,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    _displayedInfoMessage!,
+                                    _infoMessage!,
                                     style: const TextStyle(
                                       color: AppColors.info,
                                       fontSize: 14,
@@ -190,11 +184,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         CustomTextField(
                           label: 'Full Name',
                           hint: 'Alex Johnson',
-                          controller: _fullNameInputController,
+                          controller: _nameController,
                           prefixIcon: Icons.person_outline,
                           textInputAction: TextInputAction.next,
                           validator: Validators.validateName,
-                          enabled: !isAuthenticating,
+                          enabled: !isLoading,
                         ),
                         const SizedBox(height: 16),
 
@@ -202,12 +196,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         CustomTextField(
                           label: 'College or Personal Email',
                           hint: 'student@university.edu',
-                          controller: _emailInputController,
+                          controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           prefixIcon: Icons.email_outlined,
                           textInputAction: TextInputAction.next,
                           validator: Validators.validateEmail,
-                          enabled: !isAuthenticating,
+                          enabled: !isLoading,
                         ),
                         const SizedBox(height: 16),
 
@@ -215,12 +209,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         CustomTextField(
                           label: 'Password',
                           hint: 'At least 8 characters',
-                          controller: _passwordInputController,
+                          controller: _passwordController,
                           isPassword: true,
                           prefixIcon: Icons.lock_outline,
                           textInputAction: TextInputAction.next,
                           validator: Validators.validatePassword,
-                          enabled: !isAuthenticating,
+                          enabled: !isLoading,
                         ),
                         const SizedBox(height: 16),
 
@@ -228,24 +222,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         CustomTextField(
                           label: 'Confirm Password',
                           hint: 'Re-enter your password',
-                          controller: _confirmPasswordInputController,
+                          controller: _confirmPasswordController,
                           isPassword: true,
                           prefixIcon: Icons.lock_clock_outlined,
                           textInputAction: TextInputAction.done,
                           validator: (value) =>
                               Validators.validateConfirmPassword(
-                            _passwordInputController.text,
+                            _passwordController.text,
                             value,
                           ),
-                          enabled: !isAuthenticating,
+                          enabled: !isLoading,
                         ),
                         const SizedBox(height: 24),
 
                         // Register Button
                         PrimaryButton(
                           text: 'Create Student Account',
-                          onPressed: _submitRegistrationForm,
-                          isLoading: isAuthenticating,
+                          onPressed: _onRegisterPressed,
+                          isLoading: isLoading,
                         ),
                         const SizedBox(height: 20),
 
@@ -274,16 +268,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         const SizedBox(height: 20),
 
                         // Social Logins
-                        SocialProviderButton(
-                          provider: SocialAuthProvider.google,
-                          isAuthenticating: isAuthenticating,
-                          onPressed: _startGoogleOAuthLogin,
+                        SocialAuthButton(
+                          type: SocialType.google,
+                          isLoading: isLoading,
+                          onPressed: () {
+                            context
+                                .read<AuthBloc>()
+                                .add(const GoogleLoginSubmitted());
+                          },
                         ),
                         const SizedBox(height: 12),
-                        SocialProviderButton(
-                          provider: SocialAuthProvider.linkedIn,
-                          isAuthenticating: isAuthenticating,
-                          onPressed: _startLinkedInOAuthLogin,
+                        SocialAuthButton(
+                          type: SocialType.linkedin,
+                          isLoading: isLoading,
+                          onPressed: () {
+                            context
+                                .read<AuthBloc>()
+                                .add(const LinkedInLoginSubmitted());
+                          },
                         ),
                         const SizedBox(height: 24),
 
@@ -300,7 +302,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   ?.copyWith(color: AppColors.muted),
                             ),
                             GestureDetector(
-                              onTap: isAuthenticating
+                              onTap: isLoading
                                   ? null
                                   : () {
                                       Navigator.of(context).pushReplacement(

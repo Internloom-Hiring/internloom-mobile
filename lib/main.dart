@@ -7,9 +7,9 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/constants/supabase_config.dart';
 import 'core/theme/app_theme.dart';
-import 'features/auth/bloc/authentication_bloc.dart';
-import 'features/auth/bloc/authentication_event.dart';
-import 'features/auth/data/authentication_repository.dart';
+import 'features/auth/bloc/auth_bloc.dart';
+import 'features/auth/bloc/auth_event.dart';
+import 'features/auth/data/auth_repository.dart';
 import 'features/auth/presentation/screens/splash_screen.dart';
 import 'features/profile/provider/profile_provider.dart';
 
@@ -82,22 +82,17 @@ class _InternloomAppState extends State<InternloomApp> {
   }
 
   Future<void> _processDeepLink(Uri uri) async {
-    // NOTE: We do NOT call Supabase.instance.client.auth.getSessionFromUrl(uri)
-    // here. supabase_flutter already registers its own internal deep-link
-    // listener as soon as Supabase.initialize() runs, and it exchanges the
-    // OAuth/PKCE code for a session on its own — that's what surfaces through
-    // AuthenticationRepository.authenticationStateStream in
-    // AuthenticationBloc. Calling getSessionFromUrl a second time here races
-    // the SDK's own listener to redeem the same one-time code; whichever
-    // call loses throws (code already used), which is what was causing
-    // Google/LinkedIn sign-in to intermittently fail. This handler now only
-    // needs to detect the password-recovery link so we can route to the
-    // "set a new password" screen — the sign-in session itself is handled
-    // for us.
     final uriStr = uri.toString();
     if (uriStr.contains('reset-password-callback') || uriStr.contains('type=recovery')) {
       if (mounted) {
-        context.read<AuthenticationBloc>().add(const PasswordRecoveryModeTriggered());
+        context.read<AuthBloc>().add(const PasswordRecoveryRequested());
+      }
+    }
+    if (uriStr.startsWith('io.internloom.app://')) {
+      try {
+        await Supabase.instance.client.auth.getSessionFromUrl(uri);
+      } catch (_) {
+        // Silently ignore session parse errors if invalid token
       }
     }
   }
@@ -105,10 +100,10 @@ class _InternloomAppState extends State<InternloomApp> {
   @override
   Widget build(BuildContext context) {
     return RepositoryProvider(
-      create: (_) => AuthenticationRepository(),
+      create: (_) => AuthRepository(),
       child: BlocProvider(
-        create: (context) => AuthenticationBloc(
-          authenticationRepository: context.read<AuthenticationRepository>(),
+        create: (context) => AuthBloc(
+          authRepository: context.read<AuthRepository>(),
         ),
         // Student Side's profile feature (features/profile/) uses
         // Provider/ChangeNotifier rather than bloc — added here as its

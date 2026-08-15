@@ -5,9 +5,9 @@ import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/error_banner.dart';
 import '../../../../core/widgets/primary_button.dart';
-import '../../bloc/authentication_bloc.dart';
-import '../../bloc/authentication_event.dart';
-import '../../bloc/authentication_state.dart';
+import '../../bloc/auth_bloc.dart';
+import '../../bloc/auth_event.dart';
+import '../../bloc/auth_state.dart';
 
 /// Forgot Password Screen
 class ForgotPasswordScreen extends StatefulWidget {
@@ -18,29 +18,28 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-  final _resetFormKey = GlobalKey<FormState>();
-  final _emailInputController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
 
-  String? _displayedErrorMessage;
-  bool _resetEmailWasSent = false;
+  String? _errorMessage;
+  bool _isSuccess = false;
 
   @override
   void dispose() {
-    _emailInputController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
-  void _submitResetRequest() {
-    final formInputsAreValid = _resetFormKey.currentState?.validate() ?? false;
-    if (!formInputsAreValid) return;
-
-    setState(() {
-      _displayedErrorMessage = null;
-      _resetEmailWasSent = false;
-    });
-    context.read<AuthenticationBloc>().add(
-          PasswordResetEmailRequested(email: _emailInputController.text),
-        );
+  void _onResetPressed() {
+    if (_formKey.currentState?.validate() ?? false) {
+      setState(() {
+        _errorMessage = null;
+        _isSuccess = false;
+      });
+      context.read<AuthBloc>().add(
+            ForgotPasswordSubmitted(email: _emailController.text),
+          );
+    }
   }
 
   @override
@@ -56,16 +55,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
       ),
       body: SafeArea(
-        child: BlocConsumer<AuthenticationBloc, AuthenticationState>(
-          listener: (context, authState) {
-            if (authState is PasswordResetEmailSent) {
-              setState(() => _resetEmailWasSent = true);
-            } else if (authState is AuthenticationFailed) {
-              setState(() => _displayedErrorMessage = authState.errorMessage);
+        child: BlocConsumer<AuthBloc, AuthState>(
+          listener: (context, state) {
+            if (state is PasswordResetSent) {
+              setState(() {
+                _isSuccess = true;
+              });
+            } else if (state is AuthFailure) {
+              setState(() {
+                _errorMessage = state.message;
+              });
             }
           },
-          builder: (context, authState) {
-            final isAuthenticating = authState is AuthenticationInProgress;
+          builder: (context, state) {
+            final isLoading = state is AuthLoading;
 
             return Center(
               child: SingleChildScrollView(
@@ -85,7 +88,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ],
                   ),
                   child: Form(
-                    key: _resetFormKey,
+                    key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -122,16 +125,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         const SizedBox(height: 28),
 
                         // Error Banner
-                        if (_displayedErrorMessage != null)
+                        if (_errorMessage != null)
                           ErrorBanner(
-                            message: _displayedErrorMessage!,
+                            message: _errorMessage!,
                             onDismiss: () {
-                              setState(() => _displayedErrorMessage = null);
+                              setState(() {
+                                _errorMessage = null;
+                              });
                             },
                           ),
 
                         // Success State View
-                        if (_resetEmailWasSent) ...[
+                        if (_isSuccess) ...[
                           Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
@@ -156,7 +161,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'We sent a password reset link to ${_emailInputController.text}. Please check your inbox and follow the link to update your password.',
+                                  'We sent a password reset link to ${_emailController.text}. Please check your inbox and follow the link to update your password.',
                                   textAlign: TextAlign.center,
                                   style: Theme.of(context)
                                       .textTheme
@@ -176,29 +181,29 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           CustomTextField(
                             label: 'Account Email',
                             hint: 'student@university.edu',
-                            controller: _emailInputController,
+                            controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             prefixIcon: Icons.email_outlined,
                             textInputAction: TextInputAction.done,
                             validator: Validators.validateEmail,
-                            enabled: !isAuthenticating,
+                            enabled: !isLoading,
                           ),
                           const SizedBox(height: 24),
 
                           // Reset Button
                           PrimaryButton(
                             text: 'Send Reset Link',
-                            onPressed: _submitResetRequest,
-                            isLoading: isAuthenticating,
+                            onPressed: _onResetPressed,
+                            isLoading: isLoading,
                           ),
                         ],
                         const SizedBox(height: 20),
 
                         // Back link
-                        if (!_resetEmailWasSent)
+                        if (!_isSuccess)
                           Center(
                             child: TextButton.icon(
-                              onPressed: isAuthenticating
+                              onPressed: isLoading
                                   ? null
                                   : () => Navigator.of(context).pop(),
                               icon: const Icon(

@@ -5,9 +5,9 @@ import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/error_banner.dart';
 import '../../../../core/widgets/primary_button.dart';
-import '../../bloc/authentication_bloc.dart';
-import '../../bloc/authentication_event.dart';
-import '../../bloc/authentication_state.dart';
+import '../../bloc/auth_bloc.dart';
+import '../../bloc/auth_event.dart';
+import '../../bloc/auth_state.dart';
 import 'login_screen.dart';
 
 /// Screen for entering and saving a new password after password recovery link is clicked
@@ -19,32 +19,32 @@ class UpdatePasswordScreen extends StatefulWidget {
 }
 
 class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
-  final _updatePasswordFormKey = GlobalKey<FormState>();
-  final _newPasswordInputController = TextEditingController();
-  final _confirmPasswordInputController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
-  String? _displayedErrorMessage;
-  bool _passwordWasUpdated = false;
+  String? _errorMessage;
+  bool _isSuccess = false;
 
   @override
   void dispose() {
-    _newPasswordInputController.dispose();
-    _confirmPasswordInputController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  void _submitNewPassword() {
-    final formInputsAreValid =
-        _updatePasswordFormKey.currentState?.validate() ?? false;
-    if (!formInputsAreValid) return;
-
-    setState(() => _displayedErrorMessage = null);
-    context.read<AuthenticationBloc>().add(
-          NewPasswordSubmitted(
-            newPassword: _newPasswordInputController.text,
-            confirmPassword: _confirmPasswordInputController.text,
-          ),
-        );
+  void _onUpdatePasswordPressed() {
+    if (_formKey.currentState?.validate() ?? false) {
+      setState(() {
+        _errorMessage = null;
+      });
+      context.read<AuthBloc>().add(
+            UpdatePasswordSubmitted(
+              newPassword: _newPasswordController.text,
+              confirmPassword: _confirmPasswordController.text,
+            ),
+          );
+    }
   }
 
   @override
@@ -52,16 +52,20 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: BlocConsumer<AuthenticationBloc, AuthenticationState>(
-          listener: (context, authState) {
-            if (authState is PasswordUpdateSucceeded) {
-              setState(() => _passwordWasUpdated = true);
-            } else if (authState is AuthenticationFailed) {
-              setState(() => _displayedErrorMessage = authState.errorMessage);
+        child: BlocConsumer<AuthBloc, AuthState>(
+          listener: (context, state) {
+            if (state is PasswordUpdatedSuccess) {
+              setState(() {
+                _isSuccess = true;
+              });
+            } else if (state is AuthFailure) {
+              setState(() {
+                _errorMessage = state.message;
+              });
             }
           },
-          builder: (context, authState) {
-            final isAuthenticating = authState is AuthenticationInProgress;
+          builder: (context, state) {
+            final isLoading = state is AuthLoading;
 
             return Center(
               child: SingleChildScrollView(
@@ -81,7 +85,7 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                     ],
                   ),
                   child: Form(
-                    key: _updatePasswordFormKey,
+                    key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -118,16 +122,18 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                         const SizedBox(height: 28),
 
                         // Error Banner
-                        if (_displayedErrorMessage != null)
+                        if (_errorMessage != null)
                           ErrorBanner(
-                            message: _displayedErrorMessage!,
+                            message: _errorMessage!,
                             onDismiss: () {
-                              setState(() => _displayedErrorMessage = null);
+                              setState(() {
+                                _errorMessage = null;
+                              });
                             },
                           ),
 
                         // Success view
-                        if (_passwordWasUpdated) ...[
+                        if (_isSuccess) ...[
                           Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
@@ -178,12 +184,12 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                           CustomTextField(
                             label: 'New Password',
                             hint: 'At least 8 characters',
-                            controller: _newPasswordInputController,
+                            controller: _newPasswordController,
                             isPassword: true,
                             prefixIcon: Icons.lock_outline,
                             textInputAction: TextInputAction.next,
                             validator: Validators.validatePassword,
-                            enabled: !isAuthenticating,
+                            enabled: !isLoading,
                           ),
                           const SizedBox(height: 16),
 
@@ -191,24 +197,24 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                           CustomTextField(
                             label: 'Confirm New Password',
                             hint: 'Re-enter new password',
-                            controller: _confirmPasswordInputController,
+                            controller: _confirmPasswordController,
                             isPassword: true,
                             prefixIcon: Icons.lock_clock_outlined,
                             textInputAction: TextInputAction.done,
                             validator: (value) =>
                                 Validators.validateConfirmPassword(
-                              _newPasswordInputController.text,
+                              _newPasswordController.text,
                               value,
                             ),
-                            enabled: !isAuthenticating,
+                            enabled: !isLoading,
                           ),
                           const SizedBox(height: 24),
 
                           // Submit Button
                           PrimaryButton(
                             text: 'Update Password',
-                            onPressed: _submitNewPassword,
-                            isLoading: isAuthenticating,
+                            onPressed: _onUpdatePasswordPressed,
+                            isLoading: isLoading,
                           ),
                         ],
                       ],

@@ -72,13 +72,8 @@ class ProfileProvider extends ChangeNotifier {
     } on ProfileWriteDeniedException catch (e) {
       _errorMessage = e.message;
       _loadState = ProfileLoadState.notSignedIn;
-    } on ProfileSchemaMissingException catch (e) {
-      _errorMessage = e.message;
-      _loadState = ProfileLoadState.error;
     } catch (e) {
-      _errorMessage = kDebugMode
-          ? 'Could not load your profile: $e'
-          : 'Could not load your profile. Check your connection and try again.';
+      _errorMessage = 'Could not load your profile. Check your connection and try again.';
       _loadState = ProfileLoadState.error;
     }
     notifyListeners();
@@ -171,17 +166,6 @@ class ProfileProvider extends ChangeNotifier {
         _errorMessage = e.message;
         notifyListeners();
         return false;
-      } catch (e) {
-        // Any other upload failure (missing storage bucket, no storage
-        // RLS policy, network error, etc.) must still be caught here —
-        // letting it escape uncaught leaves the calling screen's
-        // "uploading" spinner stuck forever, since the setState that
-        // turns it off never runs.
-        _errorMessage = kDebugMode
-            ? 'Upload failed: $e'
-            : 'Could not upload your file. Check your connection and try again.';
-        notifyListeners();
-        return false;
       }
     }
     _profile!.collegeEmail = collegeEmail;
@@ -218,15 +202,6 @@ class ProfileProvider extends ChangeNotifier {
       _profile!.resumePath = await _storageService.uploadResume(file, fileName: fileName);
     } on ProfileWriteDeniedException catch (e) {
       _errorMessage = e.message;
-      notifyListeners();
-      return false;
-    } catch (e) {
-      // Same reasoning as saveCollegeVerification above: an uncaught
-      // exception here would leave guided_setup_screen.dart's upload
-      // spinner stuck forever with no error and no navigation.
-      _errorMessage = kDebugMode
-          ? 'Upload failed: $e'
-          : 'Could not upload your resume. Check your connection and try again.';
       notifyListeners();
       return false;
     }

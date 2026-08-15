@@ -5,11 +5,11 @@ import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/error_banner.dart';
 import '../../../../core/widgets/primary_button.dart';
-import '../../../../core/widgets/social_provider_button.dart';
-import '../../bloc/authentication_bloc.dart';
-import '../../bloc/authentication_event.dart';
-import '../../bloc/authentication_state.dart';
+import '../../../../core/widgets/social_auth_button.dart';
 import '../../../profile/presentation/screens/profile_gate.dart';
+import '../../bloc/auth_bloc.dart';
+import '../../bloc/auth_event.dart';
+import '../../bloc/auth_state.dart';
 import 'forgot_password_screen.dart';
 import 'register_screen.dart';
 import 'update_password_screen.dart';
@@ -27,46 +27,39 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _loginFormKey = GlobalKey<FormState>();
-  final _emailInputController = TextEditingController();
-  final _passwordInputController = TextEditingController();
-  String? _displayedErrorMessage;
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
     // Show error passed in from SplashScreen (e.g. expired recovery link)
     if (widget.initialError != null) {
-      _displayedErrorMessage = widget.initialError;
+      _errorMessage = widget.initialError;
     }
   }
 
   @override
   void dispose() {
-    _emailInputController.dispose();
-    _passwordInputController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
-  void _submitEmailPasswordLogin() {
-    final formInputsAreValid = _loginFormKey.currentState?.validate() ?? false;
-    if (!formInputsAreValid) return;
-
-    setState(() => _displayedErrorMessage = null);
-    context.read<AuthenticationBloc>().add(
-          EmailPasswordLoginRequested(
-            email: _emailInputController.text,
-            password: _passwordInputController.text,
-          ),
-        );
-  }
-
-  void _startGoogleOAuthLogin() {
-    context.read<AuthenticationBloc>().add(const GoogleOAuthLoginRequested());
-  }
-
-  void _startLinkedInOAuthLogin() {
-    context.read<AuthenticationBloc>().add(const LinkedInOAuthLoginRequested());
+  void _onLoginPressed() {
+    if (_formKey.currentState?.validate() ?? false) {
+      setState(() {
+        _errorMessage = null;
+      });
+      context.read<AuthBloc>().add(
+            LoginSubmitted(
+              email: _emailController.text,
+              password: _passwordController.text,
+            ),
+          );
+    }
   }
 
   @override
@@ -74,26 +67,28 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: BlocConsumer<AuthenticationBloc, AuthenticationState>(
-          listener: (context, authState) {
-            if (authState is PasswordRecoveryModeActive) {
+        child: BlocConsumer<AuthBloc, AuthState>(
+          listener: (context, state) {
+            if (state is PasswordRecoveryRequired) {
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
                   builder: (_) => const UpdatePasswordScreen(),
                 ),
               );
-            } else if (authState is UserAuthenticated) {
+            } else if (state is Authenticated) {
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
                   builder: (_) => const ProfileGate(),
                 ),
               );
-            } else if (authState is AuthenticationFailed) {
-              setState(() => _displayedErrorMessage = authState.errorMessage);
+            } else if (state is AuthFailure) {
+              setState(() {
+                _errorMessage = state.message;
+              });
             }
           },
-          builder: (context, authState) {
-            final isAuthenticating = authState is AuthenticationInProgress;
+          builder: (context, state) {
+            final isLoading = state is AuthLoading;
 
             return Center(
               child: SingleChildScrollView(
@@ -113,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                   child: Form(
-                    key: _loginFormKey,
+                    key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -150,11 +145,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 28),
 
                         // Error Banner
-                        if (_displayedErrorMessage != null)
+                        if (_errorMessage != null)
                           ErrorBanner(
-                            message: _displayedErrorMessage!,
+                            message: _errorMessage!,
                             onDismiss: () {
-                              setState(() => _displayedErrorMessage = null);
+                              setState(() {
+                                _errorMessage = null;
+                              });
                             },
                           ),
 
@@ -162,12 +159,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         CustomTextField(
                           label: 'College or Personal Email',
                           hint: 'student@university.edu',
-                          controller: _emailInputController,
+                          controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
                           prefixIcon: Icons.email_outlined,
                           validator: Validators.validateEmail,
-                          enabled: !isAuthenticating,
+                          enabled: !isLoading,
                         ),
                         const SizedBox(height: 18),
 
@@ -175,12 +172,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         CustomTextField(
                           label: 'Password',
                           hint: '••••••••',
-                          controller: _passwordInputController,
+                          controller: _passwordController,
                           isPassword: true,
                           textInputAction: TextInputAction.done,
                           prefixIcon: Icons.lock_outline,
                           validator: Validators.validatePassword,
-                          enabled: !isAuthenticating,
+                          enabled: !isLoading,
                         ),
                         const SizedBox(height: 10),
 
@@ -188,7 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
-                            onPressed: isAuthenticating
+                            onPressed: isLoading
                                 ? null
                                 : () {
                                     Navigator.of(context).push(
@@ -216,8 +213,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         // Submit Button
                         PrimaryButton(
                           text: 'Log In',
-                          onPressed: _submitEmailPasswordLogin,
-                          isLoading: isAuthenticating,
+                          onPressed: _onLoginPressed,
+                          isLoading: isLoading,
                         ),
                         const SizedBox(height: 24),
 
@@ -246,16 +243,24 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 24),
 
                         // Social Buttons
-                        SocialProviderButton(
-                          provider: SocialAuthProvider.google,
-                          isAuthenticating: isAuthenticating,
-                          onPressed: _startGoogleOAuthLogin,
+                        SocialAuthButton(
+                          type: SocialType.google,
+                          isLoading: isLoading,
+                          onPressed: () {
+                            context
+                                .read<AuthBloc>()
+                                .add(const GoogleLoginSubmitted());
+                          },
                         ),
                         const SizedBox(height: 12),
-                        SocialProviderButton(
-                          provider: SocialAuthProvider.linkedIn,
-                          isAuthenticating: isAuthenticating,
-                          onPressed: _startLinkedInOAuthLogin,
+                        SocialAuthButton(
+                          type: SocialType.linkedin,
+                          isLoading: isLoading,
+                          onPressed: () {
+                            context
+                                .read<AuthBloc>()
+                                .add(const LinkedInLoginSubmitted());
+                          },
                         ),
                         const SizedBox(height: 28),
 
@@ -272,7 +277,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ?.copyWith(color: AppColors.muted),
                             ),
                             GestureDetector(
-                              onTap: isAuthenticating
+                              onTap: isLoading
                                   ? null
                                   : () {
                                       Navigator.of(context).pushReplacement(

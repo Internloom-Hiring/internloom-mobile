@@ -15,18 +15,6 @@ class ProfileWriteDeniedException implements Exception {
   String toString() => message;
 }
 
-/// Raised when the `students` table itself can't be found on this
-/// Supabase project — a setup/migration problem, not an auth/RLS one.
-/// Kept distinct from [ProfileWriteDeniedException] so the UI doesn't
-/// tell a signed-in student to "sign in again" for what's actually a
-/// missing-schema problem on the backend.
-class ProfileSchemaMissingException implements Exception {
-  ProfileSchemaMissingException(this.message);
-  final String message;
-  @override
-  String toString() => message;
-}
-
 /// All reads/writes to the real `students` table.
 ///
 /// RLS-safety rules this class enforces (per the Flutter Core
@@ -86,12 +74,6 @@ class ProfileService {
         throw ProfileWriteDeniedException(
             'You don\'t have permission to view this profile. Please sign in again.');
       }
-      if (_isMissingTableError(e)) {
-        throw ProfileSchemaMissingException(
-            'The `students` table doesn\'t exist yet on this Supabase project. '
-            'Run the profile schema/RLS migration against the same project this '
-            'app\'s SUPABASE_URL points to.');
-      }
       rethrow;
     }
   }
@@ -136,14 +118,6 @@ class ProfileService {
   /// errors.
   bool _isPermissionError(PostgrestException e) =>
       e.code == '42501' || e.code == 'PGRST116' || e.message.toLowerCase().contains('row-level security');
-
-  /// Postgres raises `42P01` (undefined_table) when the `students` table
-  /// itself hasn't been created on whatever Supabase project this app's
-  /// SUPABASE_URL points to — most commonly because the schema/RLS
-  /// migration for the profile feature was only ever run against a
-  /// different (e.g. a developer's personal) Supabase project.
-  bool _isMissingTableError(PostgrestException e) =>
-      e.code == '42P01' || e.message.toLowerCase().contains('does not exist');
 
   /// Everything a student is actually allowed to write. Deliberately
   /// a strict subset of StudentProfile.toMap() — confirm this list

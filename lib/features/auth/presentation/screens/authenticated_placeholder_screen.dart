@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/primary_button.dart';
-import '../../bloc/authentication_bloc.dart';
-import '../../bloc/authentication_event.dart';
-import '../../bloc/authentication_state.dart';
+import '../../bloc/auth_bloc.dart';
+import '../../bloc/auth_event.dart';
+import '../../bloc/auth_state.dart';
 import 'login_screen.dart';
 
 /// Temporary Authenticated Boundary Placeholder Screen
@@ -14,15 +14,11 @@ import 'login_screen.dart';
 class AuthenticatedPlaceholderScreen extends StatelessWidget {
   const AuthenticatedPlaceholderScreen({super.key});
 
-  void _requestLogout(BuildContext context) {
-    context.read<AuthenticationBloc>().add(const UserLogoutRequested());
-  }
-
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AuthenticationBloc, AuthenticationState>(
-      listener: (context, authState) {
-        if (authState is UserNotAuthenticated) {
+    return BlocConsumer<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is Unauthenticated) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (_) => const LoginScreen(),
@@ -30,10 +26,9 @@ class AuthenticatedPlaceholderScreen extends StatelessWidget {
           );
         }
       },
-      builder: (context, authState) {
-        final signedInUser =
-            authState is UserAuthenticated ? authState.authenticatedUser : null;
-        final isAuthenticating = authState is AuthenticationInProgress;
+      builder: (context, state) {
+        final user = state is Authenticated ? state.user : null;
+        final isLoading = state is AuthLoading;
 
         return Scaffold(
           backgroundColor: AppColors.background,
@@ -48,7 +43,11 @@ class AuthenticatedPlaceholderScreen extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.logout, color: AppColors.danger),
                 tooltip: 'Log Out',
-                onPressed: isAuthenticating ? null : () => _requestLogout(context),
+                onPressed: isLoading
+                    ? null
+                    : () {
+                        context.read<AuthBloc>().add(const LogoutSubmitted());
+                      },
               ),
             ],
           ),
@@ -92,7 +91,7 @@ class AuthenticatedPlaceholderScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       SelectableText(
-                        signedInUser?.email ?? 'Student User',
+                        user?.email ?? 'Student User',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               color: AppColors.leafGreen,
                             ),
@@ -110,8 +109,12 @@ class AuthenticatedPlaceholderScreen extends StatelessWidget {
                       const SizedBox(height: 24),
                       PrimaryButton(
                         text: 'Log Out',
-                        isLoading: isAuthenticating,
-                        onPressed: () => _requestLogout(context),
+                        isLoading: isLoading,
+                        onPressed: () {
+                          context
+                              .read<AuthBloc>()
+                              .add(const LogoutSubmitted());
+                        },
                       ),
                     ],
                   ),

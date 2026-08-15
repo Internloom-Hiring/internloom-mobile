@@ -1,10 +1,4 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Required for all network calls (Supabase auth, OAuth, profile data).
-         The Flutter template only adds this permission to the debug/profile
-         manifests by default — it must be declared here too, or release/APK
-         builds have no network access at all. -->
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <application
         android:label="internloom_mobile"
         android:name="${applicationName}"
