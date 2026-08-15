@@ -30,6 +30,24 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+
+            // Shrink + obfuscate unused code (R8) and drop unused resources.
+            // This is the single biggest lever on installed app size — a debug
+            // build ships every class/resource unstripped; release + shrinking
+            // removes what's never referenced. Flutter's own plugin AARs ship
+            // consumer proguard rules that keep what they need automatically,
+            // so no custom keep rules were required for the current dependency
+            // set (supabase_flutter, flutter_bloc, provider, file_picker,
+            // app_links). If a runtime "class not found"/reflection crash ever
+            // shows up in a release build only, add a keep rule to
+            // proguard-rules.pro for that specific class rather than disabling
+            // shrinking wholesale.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 }
