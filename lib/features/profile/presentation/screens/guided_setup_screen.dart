@@ -68,11 +68,11 @@ class _GuidedSetupScreenState extends State<GuidedSetupScreen> {
   }
 
   Future<void> _pickResume() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
-    if (result == null || result.files.single.path == null) return;
-    final file = File(result.files.single.path!);
-    final fileName = result.files.single.name;
-    final error = Validators.resumeFile(fileName: fileName, sizeBytes: result.files.single.size);
+    final result = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
+    if (result.isEmpty || result.single.path == null) return;
+    final file = File(result.single.path!);
+    final fileName = result.single.name;
+    final error = Validators.resumeFile(fileName: fileName, sizeBytes: await file.length());
     setState(() {
       _resumeError = error;
       if (error == null) {
