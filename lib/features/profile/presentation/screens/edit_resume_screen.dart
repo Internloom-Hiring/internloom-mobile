@@ -28,14 +28,14 @@ class _EditResumeScreenState extends State<EditResumeScreen> {
 
   Future<void> _pickResume() async {
     final result =
-        await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
-    if (result == null || result.files.single.path == null) return;
-    final fileName = result.files.single.name;
-    final error = Validators.resumeFile(fileName: fileName, sizeBytes: result.files.single.size);
+        await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
+    if (result.isEmpty || result.single.path == null) return;
+    final fileName = File(result.single.path!).path.split('/').last;
+    final error = Validators.resumeFile(fileName: fileName, sizeBytes: await File(result.single.path!).length());
     setState(() {
       _error = error;
       if (error == null) {
-        _newFile = File(result.files.single.path!);
+        _newFile = File(result.single.path!);
         _newFileName = fileName;
       }
     });

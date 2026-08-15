@@ -50,12 +50,12 @@ class _EditCollegeVerificationScreenState extends State<EditCollegeVerificationS
   }
 
   Future<void> _pickCollegeId() async {
-    final result = await FilePicker.platform
+    final result = await FilePicker
         .pickFiles(type: FileType.custom, allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png']);
-    if (result == null || result.files.single.path == null) return;
+    if (result.isEmpty || result.single.path == null) return;
     setState(() {
-      _newIdFile = File(result.files.single.path!);
-      _newIdFileName = result.files.single.name;
+      _newIdFile = File(result.single.path!);
+      _newIdFileName = result.single.name;
     });
   }
 
