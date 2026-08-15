@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
+import '../../../auth/bloc/auth_bloc.dart';
+import '../../../auth/bloc/auth_state.dart';
+import '../../../auth/presentation/screens/login_screen.dart';
 import '../../provider/profile_provider.dart';
 import 'guided_setup_screen.dart';
 import 'profile_view_screen.dart';
@@ -43,28 +47,39 @@ class _ProfileGateState extends State<ProfileGate> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ProfileProvider>(
-      builder: (context, provider, _) {
-        if (provider.loadState == ProfileLoadState.loading ||
-            provider.loadState == ProfileLoadState.initial) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
-        }
-        if (provider.loadState == ProfileLoadState.notSignedIn) {
-          return _MessageScreen(
-            message: provider.errorMessage ?? 'You need to be signed in to continue.',
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is Unauthenticated) {
+          context.read<ProfileProvider>().clear();
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+            (route) => false,
           );
         }
-        if (provider.loadState == ProfileLoadState.error) {
-          return _MessageScreen(
-            message: provider.errorMessage ?? 'Something went wrong loading your profile.',
-            onRetry: _loadProfile,
-          );
-        }
-        if (provider.hasGuidedSetupMinimum) {
-          return const ProfileViewScreen();
-        }
-        return const GuidedSetupScreen();
       },
+      child: Consumer<ProfileProvider>(
+        builder: (context, provider, _) {
+          if (provider.loadState == ProfileLoadState.loading ||
+              provider.loadState == ProfileLoadState.initial) {
+            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          }
+          if (provider.loadState == ProfileLoadState.notSignedIn) {
+            return _MessageScreen(
+              message: provider.errorMessage ?? 'You need to be signed in to continue.',
+            );
+          }
+          if (provider.loadState == ProfileLoadState.error) {
+            return _MessageScreen(
+              message: provider.errorMessage ?? 'Something went wrong loading your profile.',
+              onRetry: _loadProfile,
+            );
+          }
+          if (provider.hasGuidedSetupMinimum) {
+            return const ProfileViewScreen();
+          }
+          return const GuidedSetupScreen();
+        },
+      ),
     );
   }
 }

@@ -45,11 +45,11 @@ class StorageService {
       throw ProfileWriteDeniedException('Not signed in — sign in before uploading a file.');
     }
 
-    final ext = preferredFileName?.split('.').last ?? file.path.split('.').last;
+    final String finalFileName = preferredFileName ?? file.path.split('/').last.split('\\').last;
     // Path always starts with the live session's own id, matching the
     // storage RLS policy's folder check — never a passed-in id, so an
     // upload can't accidentally target another user's folder.
-    final path = '$profileId/$kind/${_uuid.v4()}.$ext';
+    final path = '$profileId/$kind/${_uuid.v4()}/$finalFileName';
     final bytes = await file.readAsBytes();
 
     try {

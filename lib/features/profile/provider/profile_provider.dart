@@ -229,4 +229,12 @@ class ProfileProvider extends ChangeNotifier {
     _profile!.linkedinUrl = linkedinUrl;
     return _persist();
   }
+
+  void clear() {
+    _profile = null;
+    _loadState = ProfileLoadState.initial;
+    _errorMessage = null;
+    _isSaving = false;
+    notifyListeners();
+  }
 }
