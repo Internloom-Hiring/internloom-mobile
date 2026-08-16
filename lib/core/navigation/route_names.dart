@@ -20,6 +20,11 @@ class RouteNames {
   static const String studentSetup = 'student-setup';
   static const String studentProfile = 'student-profile';
 
+  // Job discovery
+  static const String studentDiscover = 'student-discover';
+  static const String studentSavedJobs = 'student-saved-jobs';
+  static const String studentJobDetails = 'student-job-details';
+
   // Profile edit sub-routes (nested under /student/profile)
   static const String studentEditBasic = 'student-edit-basic';
   static const String studentEditAbout = 'student-edit-about';
@@ -35,4 +40,9 @@ class RouteNames {
   // ─── Company Flow (Sprint 2 placeholders — Developer 4 owns screens) ──────
   static const String companyDashboard = 'company-dashboard';
   static const String companyApprovalWait = 'company-approval-wait';
+  static const String companyPostDrive = 'company-post-drive';
+  static const String companyMyDrives = 'company-my-drives';
+  static const String companyCandidateList = 'company-candidate-list';
+  static const String companyCandidateDetail = 'company-candidate-detail';
+  static const String companyPipelineFunnel = 'company-pipeline-funnel';
 }
