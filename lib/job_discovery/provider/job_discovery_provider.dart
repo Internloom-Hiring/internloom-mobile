@@ -45,6 +45,7 @@ class JobDiscoveryProvider extends ChangeNotifier {
   bool _filtersLoaded = false;
 
   _LastSwipe? _lastSwipe;
+  Timer? _undoTimer;
   int _swipeSequence = 0;
 
   List<PlacementDrive> get cards => List.unmodifiable(_cards);
@@ -161,7 +162,7 @@ class JobDiscoveryProvider extends ChangeNotifier {
       direction: direction,
     );
 
-    _lastSwipe?.timer?.cancel();
+    _undoTimer?.cancel();
     _lastSwipe = action;
 
     notifyListeners();
@@ -174,7 +175,7 @@ class JobDiscoveryProvider extends ChangeNotifier {
       _restoreFailedSwipe(action, error);
     }));
 
-    action.timer = Timer(const Duration(seconds: 3), () {
+    _undoTimer = Timer(const Duration(seconds: 3), () {
       if (identical(_lastSwipe, action)) {
         _lastSwipe = null;
         notifyListeners();
@@ -196,7 +197,7 @@ class JobDiscoveryProvider extends ChangeNotifier {
   void _restoreFailedSwipe(_LastSwipe action, Object error) {
     if (!identical(_lastSwipe, action)) return;
 
-    action.timer?.cancel();
+    _undoTimer?.cancel();
     _lastSwipe = null;
     _cards.insert(0, action.drive);
     _errorMessage = _friendlyError(error);
@@ -210,7 +211,7 @@ class JobDiscoveryProvider extends ChangeNotifier {
     final action = _lastSwipe;
     if (action == null) return false;
 
-    action.timer?.cancel();
+    _undoTimer?.cancel();
     _lastSwipe = null;
     notifyListeners();
 
@@ -266,7 +267,7 @@ class JobDiscoveryProvider extends ChangeNotifier {
 
   @override
   void dispose() {
-    _lastSwipe?.timer?.cancel();
+    _undoTimer?.cancel();
     super.dispose();
   }
 }
@@ -284,5 +285,4 @@ class _LastSwipe {
 
   PersistenceResult? result;
   late Future<void> persistence;
-  Timer? timer;
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/models/job_discovery_filters.dart';
+import 'internloom_brand.dart';
 
 class JobDiscoveryFilterSheet extends StatefulWidget {
   const JobDiscoveryFilterSheet({
@@ -59,6 +60,7 @@ class _JobDiscoveryFilterSheetState extends State<JobDiscoveryFilterSheet> {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
+                      color: InternloomColors.ink,
                     ),
                   ),
                 ),
@@ -68,7 +70,10 @@ class _JobDiscoveryFilterSheetState extends State<JobDiscoveryFilterSheet> {
                     _locationController.clear();
                     _ctcController.clear();
                   },
-                  icon: const Icon(Icons.clear_all),
+                  icon: const Icon(
+                    Icons.clear_all,
+                    color: InternloomColors.bookTeal,
+                  ),
                 ),
               ],
             ),
@@ -79,8 +84,19 @@ class _JobDiscoveryFilterSheetState extends State<JobDiscoveryFilterSheet> {
               decoration: const InputDecoration(
                 labelText: 'Location',
                 hintText: 'e.g. Bangalore, WFH, Paris',
-                prefixIcon: Icon(Icons.location_on_outlined),
-                border: OutlineInputBorder(),
+                prefixIcon: Icon(
+                  Icons.location_on_outlined,
+                  color: InternloomColors.bookTeal,
+                ),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(color: InternloomColors.border),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: InternloomColors.leafGreen,
+                    width: 2,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -91,19 +107,35 @@ class _JobDiscoveryFilterSheetState extends State<JobDiscoveryFilterSheet> {
               decoration: const InputDecoration(
                 labelText: 'CTC',
                 hintText: 'Text contains, e.g. 10 or LPA',
-                prefixIcon: Icon(Icons.payments_outlined),
-                border: OutlineInputBorder(),
+                prefixIcon: Icon(
+                  Icons.payments_outlined,
+                  color: InternloomColors.bookTeal,
+                ),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(color: InternloomColors.border),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: InternloomColors.leafGreen,
+                    width: 2,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 8),
             const Text(
               'Both filters use text contains matching because the production '
               'columns are stored as text.',
+              style: TextStyle(color: InternloomColors.muted),
             ),
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: InternloomColors.leafGreen,
+                  foregroundColor: InternloomColors.white,
+                ),
                 onPressed: () => _apply(context),
                 child: const Text('Apply filters'),
               ),
