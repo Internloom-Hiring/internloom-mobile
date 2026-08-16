@@ -6,6 +6,7 @@ import '../../../core/navigation/route_names.dart';
 import '../../data/models/placement_drive.dart';
 import '../../provider/saved_jobs_provider.dart';
 import '../widgets/job_discovery_card.dart';
+import '../widgets/internloom_brand.dart';
 
 class SavedJobsScreen extends StatelessWidget {
   const SavedJobsScreen({super.key});
@@ -30,7 +31,11 @@ class _SavedJobsView extends StatelessWidget {
     final provider = context.watch<SavedJobsProvider>();
 
     return Scaffold(
+      backgroundColor: InternloomColors.pageBackground,
       appBar: AppBar(
+        backgroundColor: InternloomColors.white,
+        foregroundColor: InternloomColors.ink,
+        elevation: 0,
         // Same fix as Profile: reachable via the bottom nav's "Saved" tab
         // (goNamed, no pop-able stack entry) as well as the bookmark icon
         // on Discover (pushNamed, which does auto-add a back button) — an
@@ -38,16 +43,22 @@ class _SavedJobsView extends StatelessWidget {
         // regardless of which path got you here.
         leading: IconButton(
           key: const Key('savedJobsBackButton'),
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: InternloomColors.ink),
           tooltip: 'Back to Discover',
           onPressed: () => context.goNamed(RouteNames.studentDiscover),
         ),
-        title: const Text('Saved Jobs'),
+        title: const Text(
+          'Saved Jobs',
+          style: TextStyle(
+            color: InternloomColors.ink,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         actions: [
           IconButton(
             tooltip: 'Refresh',
             onPressed: provider.load,
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, color: InternloomColors.bookTeal),
           ),
         ],
       ),
@@ -78,6 +89,7 @@ class _SavedJobsView extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: InternloomColors.leafGreen),
                 onPressed: provider.load,
                 child: const Text('Retry'),
               ),
@@ -120,7 +132,7 @@ class _SavedJobsView extends StatelessWidget {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
         itemCount: provider.jobs.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 12),
+        separatorBuilder: (_, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final drive = provider.jobs[index];
 
@@ -200,6 +212,10 @@ class _SavedJobTile extends StatelessWidget {
           children: [
             Expanded(
               child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: InternloomColors.trunkBrown,
+                  side: const BorderSide(color: InternloomColors.brownLight),
+                ),
                 onPressed: onUnsave,
                 icon: const Icon(Icons.bookmark_remove_outlined),
                 label: const Text('Unsave'),
@@ -208,6 +224,10 @@ class _SavedJobTile extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: InternloomColors.leafGreen,
+                  foregroundColor: InternloomColors.white,
+                ),
                 onPressed: onApply,
                 icon: const Icon(Icons.check),
                 label: const Text('Apply'),

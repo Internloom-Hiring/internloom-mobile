@@ -4,6 +4,7 @@ import 'package:internloom_mobile/core/constants/app_colors.dart';
 import 'package:internloom_mobile/core/navigation/route_names.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../job_discovery/presentation/widgets/internloom_brand.dart';
 import '../../provider/applications_provider.dart';
 import '../widgets/status_badge.dart';
 
@@ -41,12 +42,26 @@ class _ApplicationsListScreenState extends State<ApplicationsListScreen> {
     final provider = context.watch<ApplicationsProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Applications')),
+      backgroundColor: InternloomColors.pageBackground,
+      appBar: AppBar(
+        backgroundColor: InternloomColors.white,
+        foregroundColor: InternloomColors.ink,
+        elevation: 0,
+        title: const Text(
+          'My Applications',
+          style: TextStyle(
+            color: InternloomColors.ink,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
       body: RefreshIndicator(
         onRefresh: provider.refresh,
         child: _buildBody(provider),
       ),
       bottomNavigationBar: NavigationBar(
+        backgroundColor: InternloomColors.white,
+        indicatorColor: InternloomColors.greenLight,
         selectedIndex: 2,
         onDestinationSelected: (index) {
           if (index == 0) {
