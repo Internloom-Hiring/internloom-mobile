@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -28,6 +30,10 @@ import '../../features/profile/presentation/screens/edit_certifications_screen.d
 import '../../features/profile/presentation/screens/edit_achievements_screen.dart';
 import '../../features/profile/presentation/screens/edit_resume_screen.dart';
 import '../../features/profile/presentation/screens/edit_social_links_screen.dart'; // EditLinkedinScreen
+import '../../job_discovery/presentation/screens/job_discovery_screen.dart';
+import '../../job_discovery/presentation/screens/saved_jobs_screen.dart';
+import '../../job_discovery/presentation/screens/job_details_screen.dart';
+import '../../job_discovery/data/models/placement_drive.dart';
 
 /// Central router configuration for InternLoom Mobile.
 ///
@@ -108,7 +114,17 @@ class AppRouter {
     // Authenticated users on a pure-auth route → home for their role.
     const authOnlyPaths = <String>['/login', '/register', '/'];
     if (authOnlyPaths.contains(path)) {
-      return role == 'company' ? '/company/dashboard' : '/student/profile';
+      if (role == 'company') return '/company/dashboard';
+
+      // For students, wait until ProfileProvider has loaded so the
+      // completion guard can choose Discover vs Setup correctly.
+      final profileLoaded = profileProvider.loadState == ProfileLoadState.loaded ||
+          profileProvider.loadState == ProfileLoadState.error;
+      if (!profileLoaded) return null;
+
+      return profileProvider.hasGuidedSetupMinimum
+          ? '/student/discover'
+          : '/student/setup';
     }
 
     if (role == 'company') {
@@ -137,7 +153,7 @@ class AppRouter {
     if (profileLoaded) {
       final complete = profileProvider.hasGuidedSetupMinimum;
       if (!complete && path != '/student/setup') return '/student/setup';
-      if (complete && path == '/student/setup') return '/student/profile';
+      if (complete && path == '/student/setup') return '/student/discover';
     }
 
     return null;
@@ -240,6 +256,30 @@ class AppRouter {
           ],
         ),
 
+        // Student — Developer 2 job discovery
+        GoRoute(
+          path: '/student/discover',
+          name: RouteNames.studentDiscover,
+          builder: (context, state) => const JobDiscoveryScreen(),
+        ),
+        GoRoute(
+          path: '/student/saved',
+          name: RouteNames.studentSavedJobs,
+          builder: (context, state) => const SavedJobsScreen(),
+        ),
+        GoRoute(
+          path: '/student/job/:driveId',
+          name: RouteNames.studentJobDetails,
+          builder: (context, state) {
+            final driveId = state.pathParameters['driveId']!;
+            final extra = state.extra;
+            return JobDetailsScreen(
+              driveId: driveId,
+              initialDrive: extra is PlacementDrive ? extra : null,
+            );
+          },
+        ),
+
         // Company — placeholders for Developer 4
         GoRoute(
           path: '/company/dashboard',
@@ -311,8 +351,19 @@ class AppRouter {
 /// loading and notifies does the redirect get a second chance to evaluate.
 class _RouterRefreshListenable extends ChangeNotifier {
   _RouterRefreshListenable(AuthBloc authBloc, ProfileProvider profileProvider) {
-    // Subscribe to AuthBloc state stream.
-    authBloc.stream.listen((_) => notifyListeners());
+    // Re-load the student profile when authentication changes so the
+    // completion guard has real data available before choosing Discover vs
+    // Setup. ProfileProvider is still the single source of truth for the
+    // completion check.
+    authBloc.stream.listen((state) {
+      if (state is Authenticated) {
+        unawaited(profileProvider.load());
+      } else {
+        profileProvider.clear();
+      }
+      notifyListeners();
+    });
+
     // Subscribe to ProfileProvider change notifications.
     profileProvider.addListener(notifyListeners);
   }
