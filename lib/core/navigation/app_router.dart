@@ -29,6 +29,9 @@ import '../../features/profile/presentation/screens/edit_achievements_screen.dar
 import '../../features/profile/presentation/screens/edit_resume_screen.dart';
 import '../../features/profile/presentation/screens/edit_social_links_screen.dart'; // EditLinkedinScreen
 
+// Company screens
+import '../../features/company/presentation/screens/company_home_screen.dart';
+
 /// Central router configuration for InternLoom Mobile.
 ///
 /// ──────────────────────────────────────────────────────────────────
@@ -244,10 +247,7 @@ class AppRouter {
         GoRoute(
           path: '/company/dashboard',
           name: RouteNames.companyDashboard,
-          builder: (context, state) => const _PlaceholderScreen(
-            title: 'Company Dashboard',
-            message: 'Company dashboard — Developer 4 will implement this screen.',
-          ),
+          builder: (context, state) => const CompanyHomeScreen(),
         ),
         GoRoute(
           path: '/company/approval-wait',
