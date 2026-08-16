@@ -257,6 +257,46 @@ class AppRouter {
             message: 'Your company account is pending approval by an administrator.',
           ),
         ),
+        GoRoute(
+          path: '/company/post-drive',
+          name: RouteNames.companyPostDrive,
+          builder: (context, state) => const _PlaceholderScreen(
+            title: 'Post a Drive',
+            message: 'Post a drive screen — Developer 4 will implement this screen.',
+          ),
+        ),
+        GoRoute(
+          path: '/company/drives',
+          name: RouteNames.companyMyDrives,
+          builder: (context, state) => const _PlaceholderScreen(
+            title: 'My Drives',
+            message: 'My drives screen — Developer 4 will implement this screen.',
+          ),
+        ),
+        GoRoute(
+          path: '/company/candidates',
+          name: RouteNames.companyCandidateList,
+          builder: (context, state) => const _PlaceholderScreen(
+            title: 'Candidate List',
+            message: 'Candidate list screen — Developer 4 will implement this screen.',
+          ),
+        ),
+        GoRoute(
+          path: '/company/candidates/:id',
+          name: RouteNames.companyCandidateDetail,
+          builder: (context, state) => const _PlaceholderScreen(
+            title: 'Candidate Detail',
+            message: 'Candidate detail screen — Developer 4 will implement this screen.',
+          ),
+        ),
+        GoRoute(
+          path: '/company/pipeline-funnel',
+          name: RouteNames.companyPipelineFunnel,
+          builder: (context, state) => const _PlaceholderScreen(
+            title: 'Pipeline Funnel',
+            message: 'Pipeline funnel screen — Developer 4 will implement this screen.',
+          ),
+        ),
       ];
 }
 
