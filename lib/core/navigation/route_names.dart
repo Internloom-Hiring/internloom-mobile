@@ -20,6 +20,11 @@ class RouteNames {
   static const String studentSetup = 'student-setup';
   static const String studentProfile = 'student-profile';
 
+  // Job discovery
+  static const String studentDiscover = 'student-discover';
+  static const String studentSavedJobs = 'student-saved-jobs';
+  static const String studentJobDetails = 'student-job-details';
+
   // Profile edit sub-routes (nested under /student/profile)
   static const String studentEditBasic = 'student-edit-basic';
   static const String studentEditAbout = 'student-edit-about';
