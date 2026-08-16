@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../constants/theme.dart';
+import 'package:internloom_mobile/core/constants/app_colors.dart';
 
 /// Generic add/remove chip-list editor — the shared building block
 /// behind Skills, Certifications, and Achievements, all of which are

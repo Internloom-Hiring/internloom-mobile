@@ -2,14 +2,15 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../constants/theme.dart';
+import 'package:internloom_mobile/core/constants/app_colors.dart';
+import 'package:internloom_mobile/core/navigation/route_names.dart';
 import '../../provider/profile_provider.dart';
 import '../../utils/validators.dart';
 import '../widgets/labeled_text_field.dart';
 import '../widgets/skill_chip_input.dart';
-import 'profile_view_screen.dart';
 
 /// First-time-only flow (Section 2.4): Education + 3 Skills + Resume,
 /// the guided-setup minimum. Sign Up (Authentication's workstream)
@@ -108,10 +109,9 @@ class _GuidedSetupScreenState extends State<GuidedSetupScreen> {
     if (!mounted) return;
 
     if (eduOk && skillsOk && resumeOk) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const ProfileViewScreen()),
-        (route) => false,
-      );
+      // go clears the entire back-stack and lands on studentProfile;
+      // AppRouter redirect will skip the setup guard since profile is now complete.
+      context.goNamed(RouteNames.studentProfile);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(provider.errorMessage ?? 'Something went wrong. Please retry.')),

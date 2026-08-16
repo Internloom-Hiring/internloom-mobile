@@ -2,9 +2,10 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../constants/theme.dart';
+import 'package:internloom_mobile/core/constants/app_colors.dart';
 import '../../data/storage_service.dart';
 import '../../provider/profile_provider.dart';
 import '../../utils/validators.dart';
@@ -52,7 +53,7 @@ class _EditResumeScreenState extends State<EditResumeScreen> {
     setState(() => _isSaving = false);
     if (!mounted) return;
     if (ok) {
-      Navigator.of(context).pop();
+      context.pop();
     } else {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(provider.errorMessage ?? 'Save failed')));

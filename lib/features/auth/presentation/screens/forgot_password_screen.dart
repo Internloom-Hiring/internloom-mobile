@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/validators.dart';
@@ -51,7 +52,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.ink),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
       ),
       body: SafeArea(
@@ -174,7 +175,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           const SizedBox(height: 24),
                           PrimaryButton(
                             text: 'Back to Login',
-                            onPressed: () => Navigator.of(context).pop(),
+                            onPressed: () => context.pop(),
                           ),
                         ] else ...[
                           // Email Input
@@ -205,7 +206,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             child: TextButton.icon(
                               onPressed: isLoading
                                   ? null
-                                  : () => Navigator.of(context).pop(),
+                                  : () => context.pop(),
                               icon: const Icon(
                                 Icons.arrow_back,
                                 size: 16,

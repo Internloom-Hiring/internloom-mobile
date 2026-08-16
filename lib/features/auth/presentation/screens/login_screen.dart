@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/navigation/route_names.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/error_banner.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../../core/widgets/social_auth_button.dart';
-import '../../../profile/presentation/screens/profile_gate.dart';
 import '../../bloc/auth_bloc.dart';
 import '../../bloc/auth_event.dart';
 import '../../bloc/auth_state.dart';
-import 'forgot_password_screen.dart';
-import 'register_screen.dart';
-import 'update_password_screen.dart';
 
 /// Student Login Screen
 class LoginScreen extends StatefulWidget {
@@ -319,11 +317,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: isLoading
                         ? null
                         : () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const ForgotPasswordScreen(),
-                              ),
-                            );
+                            context.pushNamed(RouteNames.forgotPassword);
                           },
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.bookTeal,
@@ -405,11 +399,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       onTap: isLoading
                           ? null
                           : () {
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                  builder: (_) => const RegisterScreen(),
-                                ),
-                              );
+                              context.goNamed(RouteNames.register);
                             },
                       child: Text(
                         'Register',
@@ -436,19 +426,12 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: BlocConsumer<AuthBloc, AuthState>(
           listener: (context, state) {
-            if (state is PasswordRecoveryRequired) {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (_) => const UpdatePasswordScreen(),
-                ),
-              );
-            } else if (state is Authenticated) {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (_) => const ProfileGate(),
-                ),
-              );
-            } else if (state is AuthFailure) {
+            // Navigation on Authenticated / PasswordRecoveryRequired is handled
+            // declaratively by AppRouter's redirect callback which subscribes to
+            // AuthBloc via _RouterRefreshListenable. Adding navigation here too
+            // would fire two competing context.goNamed calls on the same frame —
+            // the second one hits an already-detached navigator context.
+            if (state is AuthFailure) {
               setState(() {
                 _errorMessage = state.message;
               });

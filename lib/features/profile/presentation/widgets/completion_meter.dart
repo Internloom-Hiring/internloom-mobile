@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../constants/theme.dart';
+import 'package:internloom_mobile/core/constants/app_colors.dart';
 
 /// The profile-completion meter — Section 2.2: "a percentage plus a
 /// short list of what's missing; the primary nudge to keep filling it

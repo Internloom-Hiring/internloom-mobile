@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../constants/theme.dart';
+import 'package:internloom_mobile/core/constants/app_colors.dart';
 import '../../provider/profile_provider.dart';
 import '../widgets/tag_list_input.dart';
 
@@ -31,7 +32,7 @@ class _EditCertificationsScreenState extends State<EditCertificationsScreen> {
     setState(() => _isSaving = false);
     if (!mounted) return;
     if (ok) {
-      Navigator.of(context).pop();
+      context.pop();
     } else {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(provider.errorMessage ?? 'Save failed')));

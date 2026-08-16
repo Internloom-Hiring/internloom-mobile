@@ -7,9 +7,10 @@
 // somewhere to be saved. The class name reflects that.
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../constants/theme.dart';
+import 'package:internloom_mobile/core/constants/app_colors.dart';
 import '../../provider/profile_provider.dart';
 import '../../utils/validators.dart';
 import '../widgets/labeled_text_field.dart';
@@ -57,7 +58,7 @@ class _EditBasicInfoScreenState extends State<EditBasicInfoScreen> {
     setState(() => _isSaving = false);
     if (!mounted) return;
     if (ok) {
-      Navigator.of(context).pop();
+      context.pop();
     } else {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(provider.errorMessage ?? 'Save failed')));

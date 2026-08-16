@@ -3,14 +3,15 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/constants/supabase_config.dart';
+import 'core/navigation/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/bloc/auth_bloc.dart';
 import 'features/auth/bloc/auth_event.dart';
 import 'features/auth/data/auth_repository.dart';
-import 'features/auth/presentation/screens/splash_screen.dart';
 import 'features/profile/provider/profile_provider.dart';
 
 void main() async {
@@ -113,14 +114,63 @@ class _InternloomAppState extends State<InternloomApp> {
         // already-working, already-verified module.
         child: ChangeNotifierProvider(
           create: (_) => ProfileProvider(),
-          child: MaterialApp(
-            title: 'Internloom Student Portal',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
-            home: const SplashScreen(),
-          ),
+          // _RouterShell reads AuthBloc and ProfileProvider once, stores
+          // the GoRouter in StatefulWidget state so it is NEVER recreated
+          // on subsequent builds — a new GoRouter would reset the entire
+          // navigation stack back to initialLocation on every rebuild.
+          child: _RouterShell(title: 'Internloom Student Portal'),
         ),
       ),
+    );
+  }
+}
+
+/// Stores the [GoRouter] in [State] so it is created exactly once,
+/// regardless of how many times the parent tree rebuilds (e.g. when
+/// [ProfileProvider] notifies or [AuthBloc] emits new states).
+///
+/// [AuthBloc] and [ProfileProvider] references are captured in
+/// [initState] — before [build] runs for the first time — and passed
+/// directly into [AppRouter.buildRouter]. This avoids the
+/// [BuildContext] inside GoRouter's redirect callback, which would
+/// otherwise fail to resolve providers via [context.read] because the
+/// redirect runs on the router's own internal navigator context.
+class _RouterShell extends StatefulWidget {
+  const _RouterShell({required this.title});
+  final String title;
+
+  @override
+  State<_RouterShell> createState() => _RouterShellState();
+}
+
+class _RouterShellState extends State<_RouterShell> {
+  late final GoRouter _router;
+
+  @override
+  void initState() {
+    super.initState();
+    // context.read is safe here because initState runs after the first
+    // build frame — the BlocProvider and ChangeNotifierProvider are
+    // already in the tree at this point.
+    _router = AppRouter.buildRouter(
+      authBloc: context.read<AuthBloc>(),
+      profileProvider: context.read<ProfileProvider>(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _router.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      title: widget.title,
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      routerConfig: _router,
     );
   }
 }

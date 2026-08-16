@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 
 /// Internloom Brand Colors & Palette
+///
+/// Includes semantic aliases (primary, error, meterTrack, etc.) so that
+/// profile-module screens which previously imported lib/constants/theme.dart
+/// can point here directly without any naming changes at their call sites.
+/// AppSpacing is also defined here (was in lib/constants/theme.dart) so
+/// that file can be deleted — it only ran standalone during Sprint 1.
 class AppColors {
   AppColors._();
 
@@ -34,4 +40,28 @@ class AppColors {
   static const Color danger = Color(0xFFDC2626);
   static const Color warning = Color(0xFFD97706);
   static const Color info = Color(0xFF0284C7);
+
+  // ─── Semantic aliases (profile-module compatibility) ──────────────────────
+  // These map the profile module's generic names to the real brand tokens so
+  // both lib/core and lib/features/profile code resolve to the same values.
+  static const Color primary = leafGreen;
+  static const Color primaryDark = greenDark;
+  static const Color accent = bookTeal;
+  static const Color cardBackground = white;
+  static const Color textPrimary = ink;
+  static const Color textSecondary = muted;
+  static const Color error = danger;
+  static const Color meterTrack = border; // completion meter unfilled track
+}
+
+/// Shared spacing scale — previously defined in lib/constants/theme.dart
+/// (standalone-module leftover). All profile screens should use this class.
+class AppSpacing {
+  AppSpacing._();
+
+  static const double xs = 4.0;
+  static const double sm = 8.0;
+  static const double md = 16.0;
+  static const double lg = 24.0;
+  static const double xl = 32.0;
 }
