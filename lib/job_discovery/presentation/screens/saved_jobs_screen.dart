@@ -19,6 +19,9 @@ class SavedJobsScreen extends StatelessWidget {
   }
 }
 
+
+
+
 class _SavedJobsView extends StatelessWidget {
   const _SavedJobsView();
 

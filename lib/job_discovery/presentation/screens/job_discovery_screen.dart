@@ -10,9 +10,14 @@ import '../widgets/job_discovery_filter_sheet.dart';
 import '../widgets/swipe_deck.dart';
 import '../../../core/navigation/route_names.dart';
 
-class JobDiscoveryScreen extends StatelessWidget {
+class JobDiscoveryScreen extends StatefulWidget {
   const JobDiscoveryScreen({super.key});
 
+  @override
+  State<JobDiscoveryScreen> createState() => _JobDiscoveryScreenState();
+}
+
+class _JobDiscoveryScreenState extends State<JobDiscoveryScreen> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -21,6 +26,21 @@ class JobDiscoveryScreen extends StatelessWidget {
     );
   }
 }
+
+
+
+Future<void> _openSavedJobs(
+  BuildContext context,
+  JobDiscoveryProvider provider,
+) async {
+  await context.pushNamed(RouteNames.studentSavedJobs);
+
+  if (!context.mounted) return;
+
+  await provider.loadInitial();
+}
+
+
 
 class _JobDiscoveryView extends StatelessWidget {
   const _JobDiscoveryView();
@@ -44,7 +64,7 @@ class _JobDiscoveryView extends StatelessWidget {
           ),
           IconButton(
             tooltip: 'Saved jobs',
-            onPressed: () => context.pushNamed(RouteNames.studentSavedJobs),
+            onPressed: () => _openSavedJobs(context, provider),
             icon: const Icon(Icons.bookmark_border),
           ),
         ],
@@ -52,13 +72,13 @@ class _JobDiscoveryView extends StatelessWidget {
       body: _buildBody(context, provider),
       bottomNavigationBar: NavigationBar(
         selectedIndex: 0,
-        onDestinationSelected: (index) {
-          if (index == 1) {
-            context.pushNamed(RouteNames.studentSavedJobs);
-          } else if (index == 2) {
-            context.pushNamed(RouteNames.studentProfile);
-          }
-        },
+          onDestinationSelected: (index) {
+            if (index == 1) {
+              context.goNamed(RouteNames.studentSavedJobs);
+            } else if (index == 2) {
+              context.goNamed(RouteNames.studentProfile);
+            }
+          },
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.work_outline),
