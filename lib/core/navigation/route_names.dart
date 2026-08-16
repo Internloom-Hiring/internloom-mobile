@@ -25,6 +25,9 @@ class RouteNames {
   static const String studentSavedJobs = 'student-saved-jobs';
   static const String studentJobDetails = 'student-job-details';
 
+  // Application tracking (Developer 3) — still not published upstream.
+  static const String studentApplications = 'student-applications';
+
   // Profile edit sub-routes (nested under /student/profile)
   static const String studentEditBasic = 'student-edit-basic';
   static const String studentEditAbout = 'student-edit-about';
@@ -39,7 +42,6 @@ class RouteNames {
 
   // ─── Company Flow (Sprint 2 placeholders — Developer 4 owns screens) ──────
   static const String companyDashboard = 'company-dashboard';
-  static const String companyProfile = 'company-profile';
   static const String companyApprovalWait = 'company-approval-wait';
   static const String companyPostDrive = 'company-post-drive';
   static const String companyMyDrives = 'company-my-drives';

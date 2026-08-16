@@ -73,6 +73,18 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
 
         return Scaffold(
           appBar: AppBar(
+            // Profile has no bottom nav bar of its own (unlike Discover and
+            // Applications), so without this there was no way back to the
+            // main tabs except the system back gesture. Goes to Discover
+            // specifically (not just Navigator.pop) since Profile can be
+            // reached via go_router's goNamed from the nav bar, which
+            // doesn't always leave a pop-able entry on the stack.
+            leading: IconButton(
+              key: const Key('profileBackButton'),
+              icon: const Icon(Icons.arrow_back),
+              tooltip: 'Back to Discover',
+              onPressed: () => context.goNamed(RouteNames.studentDiscover),
+            ),
             title: const Text('My Profile'),
             actions: [
               IconButton(

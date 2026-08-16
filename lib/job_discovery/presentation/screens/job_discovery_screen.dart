@@ -6,14 +6,18 @@ import '../../data/models/job_discovery_filters.dart';
 import '../../data/models/placement_drive.dart';
 import '../../data/models/swipe_action.dart';
 import '../../provider/job_discovery_provider.dart';
-import '../widgets/internloom_brand.dart';
 import '../widgets/job_discovery_filter_sheet.dart';
 import '../widgets/swipe_deck.dart';
 import '../../../core/navigation/route_names.dart';
 
-class JobDiscoveryScreen extends StatelessWidget {
+class JobDiscoveryScreen extends StatefulWidget {
   const JobDiscoveryScreen({super.key});
 
+  @override
+  State<JobDiscoveryScreen> createState() => _JobDiscoveryScreenState();
+}
+
+class _JobDiscoveryScreenState extends State<JobDiscoveryScreen> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -23,6 +27,21 @@ class JobDiscoveryScreen extends StatelessWidget {
   }
 }
 
+
+
+Future<void> _openSavedJobs(
+  BuildContext context,
+  JobDiscoveryProvider provider,
+) async {
+  await context.pushNamed(RouteNames.studentSavedJobs);
+
+  if (!context.mounted) return;
+
+  await provider.loadInitial();
+}
+
+
+
 class _JobDiscoveryView extends StatelessWidget {
   const _JobDiscoveryView();
 
@@ -31,18 +50,8 @@ class _JobDiscoveryView extends StatelessWidget {
     final provider = context.watch<JobDiscoveryProvider>();
 
     return Scaffold(
-      backgroundColor: InternloomColors.pageBackground,
       appBar: AppBar(
-        backgroundColor: InternloomColors.white,
-        foregroundColor: InternloomColors.ink,
-        elevation: 0,
-        title: const Text(
-          'Discover Jobs',
-          style: TextStyle(
-            color: InternloomColors.ink,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+        title: const Text('Discover Jobs'),
         actions: [
           IconButton(
             tooltip: 'Filters',
@@ -50,34 +59,28 @@ class _JobDiscoveryView extends StatelessWidget {
             icon: Badge(
               isLabelVisible: provider.hasActiveFilters,
               smallSize: 8,
-              child: const Icon(
-                Icons.filter_list,
-                color: InternloomColors.leafGreen,
-              ),
+              child: const Icon(Icons.filter_list),
             ),
           ),
           IconButton(
             tooltip: 'Saved jobs',
             onPressed: () => _openSavedJobs(context, provider),
-            icon: const Icon(
-              Icons.bookmark_border,
-              color: InternloomColors.bookTeal,
-            ),
+            icon: const Icon(Icons.bookmark_border),
           ),
         ],
       ),
       body: _buildBody(context, provider),
       bottomNavigationBar: NavigationBar(
-        backgroundColor: InternloomColors.white,
-        indicatorColor: InternloomColors.greenLight,
         selectedIndex: 0,
-        onDestinationSelected: (index) {
-          if (index == 1) {
-            context.goNamed(RouteNames.studentSavedJobs);
-          } else if (index == 2) {
-            context.goNamed(RouteNames.studentProfile);
-          }
-        },
+          onDestinationSelected: (index) {
+            if (index == 1) {
+              context.goNamed(RouteNames.studentSavedJobs);
+            } else if (index == 2) {
+              context.goNamed(RouteNames.studentApplications);
+            } else if (index == 3) {
+              context.goNamed(RouteNames.studentProfile);
+            }
+          },
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.work_outline),
@@ -88,6 +91,11 @@ class _JobDiscoveryView extends StatelessWidget {
             icon: Icon(Icons.bookmark_border),
             selectedIcon: Icon(Icons.bookmark),
             label: 'Saved',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.assignment_outlined),
+            selectedIcon: Icon(Icons.assignment),
+            label: 'Applications',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
@@ -115,23 +123,14 @@ class _JobDiscoveryView extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.cloud_off,
-                size: 44,
-                color: InternloomColors.muted,
-              ),
+              const Icon(Icons.cloud_off, size: 44),
               const SizedBox(height: 12),
               Text(
                 provider.errorMessage!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: InternloomColors.body),
               ),
               const SizedBox(height: 16),
               FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: InternloomColors.leafGreen,
-                  foregroundColor: InternloomColors.white,
-                ),
                 onPressed: provider.retry,
                 child: const Text('Retry'),
               ),
@@ -145,7 +144,8 @@ class _JobDiscoveryView extends StatelessWidget {
       return _AllCaughtUp(
         hasFilters: provider.hasActiveFilters,
         onClearFilters: provider.clearFilters,
-        onOpenSaved: () => context.pushNamed(RouteNames.studentSavedJobs),
+        onOpenSaved: () =>
+            context.pushNamed(RouteNames.studentSavedJobs),
       );
     }
 
@@ -174,50 +174,24 @@ class _JobDiscoveryView extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           const _SwipeHint(),
-          // This control is driven by provider.canUndo. The provider clears
-          // it after exactly 3 seconds, so there is no stale undo action.
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 180),
-            child: provider.canUndo
-                ? Padding(
-                    key: const ValueKey('undo-visible'),
-                    padding: const EdgeInsets.only(top: 6),
-                    child: TextButton.icon(
-                      style: TextButton.styleFrom(
-                        foregroundColor: InternloomColors.leafGreen,
-                      ),
-                      onPressed: () => _undo(context, provider),
-                      icon: const Icon(Icons.undo),
-                      label: const Text('Undo last swipe'),
-                    ),
-                  )
-                : const SizedBox(
-                    key: ValueKey('undo-hidden'),
-                    height: 40,
-                  ),
-          ),
-          if (provider.isLoading)
-            const LinearProgressIndicator(
-              minHeight: 2,
-              color: InternloomColors.leafGreen,
+          if (provider.canUndo)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: TextButton.icon(
+                onPressed: () => _undo(context, provider),
+                icon: const Icon(Icons.undo),
+                label: const Text('Undo last swipe'),
+              ),
             )
+          else
+            const SizedBox(height: 40),
+          if (provider.isLoading)
+            const LinearProgressIndicator(minHeight: 2)
           else
             const SizedBox(height: 2),
         ],
       ),
     );
-  }
-
-  Future<void> _openSavedJobs(
-    BuildContext context,
-    JobDiscoveryProvider provider,
-  ) async {
-    await context.pushNamed(RouteNames.studentSavedJobs);
-
-    if (!context.mounted) return;
-
-    // Refresh exclusions after a saved job is unsaved/applied.
-    await provider.loadInitial();
   }
 
   Future<void> _showFilters(
@@ -256,14 +230,16 @@ class _JobDiscoveryView extends StatelessWidget {
       SwipeDirection.right => 'Application sent',
     };
 
-    // Status only. The Undo control itself lives in the page and expires
-    // with provider.canUndo after three seconds.
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
           content: Text(label),
           duration: const Duration(seconds: 3),
+          action: SnackBarAction(
+            label: 'UNDO',
+            onPressed: () => _undo(context, provider),
+          ),
         ),
       );
   }
@@ -314,33 +290,15 @@ class _ActiveFilterBar extends StatelessWidget {
         children: [
           if (filters.location.trim().isNotEmpty)
             Chip(
-              backgroundColor: InternloomColors.greenLight,
-              side: const BorderSide(color: InternloomColors.border),
-              avatar: const Icon(
-                Icons.location_on_outlined,
-                size: 16,
-                color: InternloomColors.greenDark,
-              ),
-              label: Text(
-                filters.location,
-                style: const TextStyle(color: InternloomColors.ink),
-              ),
+              avatar: const Icon(Icons.location_on_outlined, size: 16),
+              label: Text(filters.location),
             ),
           if (filters.ctc.trim().isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(left: 6),
               child: Chip(
-                backgroundColor: InternloomColors.tealLight,
-                side: const BorderSide(color: InternloomColors.border),
-                avatar: const Icon(
-                  Icons.payments_outlined,
-                  size: 16,
-                  color: InternloomColors.tealDark,
-                ),
-                label: Text(
-                  filters.ctc,
-                  style: const TextStyle(color: InternloomColors.ink),
-                ),
+                avatar: const Icon(Icons.payments_outlined, size: 16),
+                label: Text(filters.ctc),
               ),
             ),
         ],
@@ -369,7 +327,10 @@ class _SwipeHint extends StatelessWidget {
 }
 
 class _Hint extends StatelessWidget {
-  const _Hint({required this.icon, required this.label});
+  const _Hint({
+    required this.icon,
+    required this.label,
+  });
 
   final IconData icon;
   final String label;
@@ -380,13 +341,13 @@ class _Hint extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 16, color: InternloomColors.bookTeal),
+          Icon(icon, size: 16),
           const SizedBox(width: 4),
           Flexible(
             child: Text(
               label,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: InternloomColors.muted),
+              style: Theme.of(context).textTheme.labelSmall,
             ),
           ),
         ],
@@ -414,18 +375,13 @@ class _AllCaughtUp extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.check_circle_outline,
-              size: 72,
-              color: InternloomColors.leafGreen,
-            ),
+            const Icon(Icons.check_circle_outline, size: 72),
             const SizedBox(height: 20),
             const Text(
               "You're all caught up!",
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: InternloomColors.ink,
               ),
               textAlign: TextAlign.center,
             ),
@@ -434,23 +390,15 @@ class _AllCaughtUp extends StatelessWidget {
               "You've seen all the opportunities available to you right now. "
               "We'll notify you when a new posting is available.",
               textAlign: TextAlign.center,
-              style: TextStyle(color: InternloomColors.body),
             ),
             const SizedBox(height: 20),
             if (hasFilters)
               OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: InternloomColors.leafGreen,
-                  side: const BorderSide(color: InternloomColors.leafGreen),
-                ),
                 onPressed: onClearFilters,
                 child: const Text('Clear filters'),
               ),
             const SizedBox(height: 4),
             TextButton.icon(
-              style: TextButton.styleFrom(
-                foregroundColor: InternloomColors.bookTeal,
-              ),
               onPressed: onOpenSaved,
               icon: const Icon(Icons.bookmark_outline),
               label: const Text('View saved jobs'),
