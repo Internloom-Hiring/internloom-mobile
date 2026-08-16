@@ -5,6 +5,7 @@ import 'package:internloom_mobile/core/navigation/route_names.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../job_discovery/presentation/widgets/internloom_brand.dart';
+import '../../data/models/application_entry.dart';
 import '../../provider/applications_provider.dart';
 import '../widgets/status_badge.dart';
 
@@ -136,33 +137,107 @@ class _ApplicationsListScreenState extends State<ApplicationsListScreen> {
       separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
       itemBuilder: (context, i) {
         final a = provider.applications[i];
+        // Only applied/shortlisted applications can be withdrawn — once a
+        // company has made a final call (selected/rejected) there's
+        // nothing left for the student to withdraw.
+        final canWithdraw = !a.isTerminal;
+        final isWithdrawing = provider.withdrawingIds.contains(a.id);
+
         return Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             border: Border.all(color: AppColors.textSecondary.withValues(alpha: 0.15)),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      a.driveTitle,
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          a.driveTitle,
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(a.companyName, style: const TextStyle(color: AppColors.textSecondary)),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(a.companyName, style: const TextStyle(color: AppColors.textSecondary)),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  ApplicationStatusBadge(status: a.status),
+                ],
               ),
-              const SizedBox(width: AppSpacing.sm),
-              ApplicationStatusBadge(status: a.status),
+              if (canWithdraw) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    key: Key('withdrawButton-${a.id}'),
+                    onPressed: isWithdrawing ? null : () => _confirmWithdraw(context, provider, a),
+                    style: TextButton.styleFrom(foregroundColor: AppColors.error),
+                    icon: isWithdrawing
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.undo, size: 18),
+                    label: Text(isWithdrawing ? 'Withdrawing…' : 'Withdraw'),
+                  ),
+                ),
+              ],
             ],
           ),
         );
       },
+    );
+  }
+
+  Future<void> _confirmWithdraw(
+    BuildContext context,
+    ApplicationsProvider provider,
+    ApplicationEntry entry,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Withdraw application?'),
+        content: Text(
+          'You will no longer be considered for "${entry.driveTitle}" at ${entry.companyName}. '
+          'The drive will reappear in your job stack so you can apply again later.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Withdraw'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+    if (!context.mounted) return;
+
+    final success = await provider.withdraw(entry);
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? 'Application withdrawn. It\'s back in your job stack.'
+              : 'Could not withdraw the application. Try again.',
+        ),
+      ),
     );
   }
 }
