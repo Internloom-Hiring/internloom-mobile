@@ -52,6 +52,41 @@ class ApplicationsService {
         .toList();
   }
 
+  /// Withdraw — deletes the application row outright rather than setting
+  /// status to 'withdrawn'. This mirrors Developer 2's own
+  /// `deleteApplication` (in SupabaseJobDiscoveryRepository, used for the
+  /// Discover "undo apply" action): Discover's exclusion query only checks
+  /// whether a row exists in `applications` for (student_id, drive_id),
+  /// regardless of status, so leaving a 'withdrawn' row behind would keep
+  /// the drive hidden from the job stack forever. Deleting the row is the
+  /// only way to satisfy "withdrawn applications reappear in Discover"
+  /// under the schema as it actually exists.
+  ///
+  /// Also deletes any matching `swipes` row for the same (student_id,
+  /// drive_id). Discover's exclusion set is built from BOTH `applications`
+  /// and `swipes` (SupabaseJobDiscoveryRepository._loadExclusions), and a
+  /// drive that was swiped up (saved) before being applied to — e.g. via
+  /// the "Apply" button on the Saved Jobs screen, which creates an
+  /// application without removing the original swipe — leaves a leftover
+  /// swipe row behind. Without also clearing that, withdrawing the
+  /// application alone isn't enough to bring the drive back to Discover:
+  /// confirmed by reproducing this exact case (a driveId with an 'up'
+  /// swipe row surviving after its application was deleted, keeping it
+  /// permanently excluded).
+  Future<void> withdrawApplication(String driveId) async {
+    final studentId = await _studentId();
+    await _client
+        .from('applications')
+        .delete()
+        .eq('student_id', studentId)
+        .eq('drive_id', driveId);
+    await _client
+        .from('swipes')
+        .delete()
+        .eq('student_id', studentId)
+        .eq('drive_id', driveId);
+  }
+
   /// Task 3 — realtime status updates. A raw postgres_changes payload
   /// only carries the columns that changed on `applications`, not the
   /// joined drive title / company name the list needs to render, so
