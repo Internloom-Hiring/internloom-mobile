@@ -51,6 +51,7 @@ dependencies:
   # Student Side profile feature also needs these — file uploads
   # (resume PDF, college ID) and generating ids for project entries.
   file_picker: ^12.0.0
+  url_launcher: ^6.2.6
   uuid: ^4.4.0
 
   # profile_service.dart catches PostgrestException directly (to tell
