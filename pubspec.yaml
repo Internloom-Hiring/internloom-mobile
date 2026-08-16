@@ -60,6 +60,7 @@ dependencies:
   # No version constraint: this just makes pub's existing resolution
   # (whatever supabase_flutter ^2.17.1 already picked) explicit.
   postgrest: any
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:
