@@ -76,6 +76,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
             title: const Text('My Profile'),
             actions: [
               IconButton(
+                key: const Key('logoutButton'),
                 icon: const Icon(Icons.logout),
                 color: AppColors.danger,
                 tooltip: 'Log out',
@@ -232,6 +233,22 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                 emptyLabel: 'Optional — add your LinkedIn profile link.',
                 onEdit: () => context.pushNamed(RouteNames.studentEditLinkedin),
                 child: Text(profile.linkedinUrl),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                child: OutlinedButton.icon(
+                  key: const Key('logoutProfileButton'),
+                  onPressed: () {
+                    context.read<AuthBloc>().add(const LogoutSubmitted());
+                  },
+                  icon: const Icon(Icons.logout, color: AppColors.error),
+                  label: const Text('Log Out', style: TextStyle(color: AppColors.error)),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.error),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
               ),
             ],
           ),

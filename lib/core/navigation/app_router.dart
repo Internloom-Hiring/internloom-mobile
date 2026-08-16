@@ -88,8 +88,9 @@ class AppRouter {
 
     // ── 1. AuthGuard ─────────────────────────────────────────────────────────
     if (!authenticated) {
+      // Once session check finishes on splash ('/'), unauthenticated users go to /login
+      if (path == '/') return '/login';
       const publicPaths = <String>[
-        '/',
         '/login',
         '/register',
         '/forgot-password',
