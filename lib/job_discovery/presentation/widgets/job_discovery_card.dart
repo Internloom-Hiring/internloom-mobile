@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/models/placement_drive.dart';
+import 'internloom_brand.dart';
 
 class JobDiscoveryCard extends StatelessWidget {
   const JobDiscoveryCard({
@@ -18,7 +19,9 @@ class JobDiscoveryCard extends StatelessWidget {
     final score = (drive.finalScore * 100).clamp(0, 100).toStringAsFixed(0);
 
     return Card(
-      elevation: 4,
+      color: InternloomColors.white,
+      elevation: 3,
+      shadowColor: InternloomColors.border,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
@@ -35,15 +38,30 @@ class JobDiscoveryCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         drive.jobTitle,
-                        style: theme.textTheme.headlineSmall,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          color: InternloomColors.ink,
+                          fontWeight: FontWeight.w700,
+                        ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: 12),
                     Chip(
-                      label: Text('$score% match'),
-                      avatar: const Icon(Icons.auto_awesome, size: 16),
+                      backgroundColor: InternloomColors.greenLight,
+                      side: const BorderSide(color: InternloomColors.greenLight),
+                      label: Text(
+                        '$score% match',
+                        style: const TextStyle(
+                          color: InternloomColors.greenDark,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      avatar: const Icon(
+                        Icons.auto_awesome,
+                        size: 16,
+                        color: InternloomColors.greenDark,
+                      ),
                     ),
                   ],
                 ),
@@ -119,7 +137,7 @@ class _InfoLine extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 18),
+        Icon(icon, size: 18, color: InternloomColors.bookTeal),
         const SizedBox(width: 8),
         Expanded(
           child: Text(

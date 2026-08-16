@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../data/models/placement_drive.dart';
 import '../../data/models/swipe_action.dart';
 import '../../data/supabase_job_discovery_repository.dart';
+import '../widgets/internloom_brand.dart';
 
 class JobDetailsScreen extends StatefulWidget {
   const JobDetailsScreen({
@@ -66,7 +67,19 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Job Details')),
+      backgroundColor: InternloomColors.pageBackground,
+      appBar: AppBar(
+        backgroundColor: InternloomColors.white,
+        foregroundColor: InternloomColors.ink,
+        elevation: 0,
+        title: const Text(
+          'Job Details',
+          style: TextStyle(
+            color: InternloomColors.ink,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
       body: _buildBody(context),
     );
   }
@@ -95,7 +108,10 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
       children: [
         Text(
           drive.jobTitle,
-          style: Theme.of(context).textTheme.headlineMedium,
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            color: InternloomColors.ink,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         const SizedBox(height: 16),
         if ((drive.location ?? '').trim().isNotEmpty)
@@ -135,6 +151,10 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
           children: [
             Expanded(
               child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: InternloomColors.bookTeal,
+                  side: const BorderSide(color: InternloomColors.bookTeal),
+                ),
                 onPressed: _saving ? null : _save,
                 icon: const Icon(Icons.bookmark_add_outlined),
                 label: Text(_saving ? 'Saving...' : 'Save'),
@@ -143,6 +163,10 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: InternloomColors.leafGreen,
+                  foregroundColor: InternloomColors.white,
+                ),
                 onPressed: _applying ? null : _apply,
                 icon: const Icon(Icons.check),
                 label: Text(_applying ? 'Applying...' : 'Apply'),
@@ -231,7 +255,7 @@ class _DetailRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20),
+          Icon(icon, size: 20, color: InternloomColors.bookTeal),
           const SizedBox(width: 10),
           Text(
             '$label: ',
