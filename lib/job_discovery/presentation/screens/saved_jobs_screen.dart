@@ -36,6 +36,17 @@ class _SavedJobsView extends StatelessWidget {
         backgroundColor: InternloomColors.white,
         foregroundColor: InternloomColors.ink,
         elevation: 0,
+        // Same fix as Profile: reachable via the bottom nav's "Saved" tab
+        // (goNamed, no pop-able stack entry) as well as the bookmark icon
+        // on Discover (pushNamed, which does auto-add a back button) — an
+        // explicit leading button here makes the back behavior consistent
+        // regardless of which path got you here.
+        leading: IconButton(
+          key: const Key('savedJobsBackButton'),
+          icon: const Icon(Icons.arrow_back, color: InternloomColors.ink),
+          tooltip: 'Back to Discover',
+          onPressed: () => context.goNamed(RouteNames.studentDiscover),
+        ),
         title: const Text(
           'Saved Jobs',
           style: TextStyle(

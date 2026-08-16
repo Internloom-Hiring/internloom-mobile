@@ -25,6 +25,9 @@ class RouteNames {
   static const String studentSavedJobs = 'student-saved-jobs';
   static const String studentJobDetails = 'student-job-details';
 
+  // Application tracking (Developer 3) — still not published upstream.
+  static const String studentApplications = 'student-applications';
+
   // Profile edit sub-routes (nested under /student/profile)
   static const String studentEditBasic = 'student-edit-basic';
   static const String studentEditAbout = 'student-edit-about';

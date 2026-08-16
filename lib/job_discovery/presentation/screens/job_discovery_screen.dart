@@ -75,6 +75,8 @@ class _JobDiscoveryView extends StatelessWidget {
           if (index == 1) {
             context.goNamed(RouteNames.studentSavedJobs);
           } else if (index == 2) {
+            context.goNamed(RouteNames.studentApplications);
+          } else if (index == 3) {
             context.goNamed(RouteNames.studentProfile);
           }
         },
@@ -88,6 +90,11 @@ class _JobDiscoveryView extends StatelessWidget {
             icon: Icon(Icons.bookmark_border),
             selectedIcon: Icon(Icons.bookmark),
             label: 'Saved',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.assignment_outlined),
+            selectedIcon: Icon(Icons.assignment),
+            label: 'Applications',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),

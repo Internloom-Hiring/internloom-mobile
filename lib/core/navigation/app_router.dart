@@ -43,6 +43,9 @@ import '../../features/company/presentation/screens/candidate_list_screen.dart';
 import '../../features/company/presentation/screens/candidate_detail_screen.dart';
 import '../../features/company/presentation/screens/pipeline_view_screen.dart';
 
+// Applications screen (Developer 3)
+import '../../features/applications/presentation/screens/applications_list_screen.dart';
+
 /// Central router configuration for InternLoom Mobile.
 ///
 /// ──────────────────────────────────────────────────────────────────
@@ -286,6 +289,13 @@ class AppRouter {
               initialDrive: extra is PlacementDrive ? extra : null,
             );
           },
+        ),
+
+        // Student — application tracking (Developer 3)
+        GoRoute(
+          path: '/student/applications',
+          name: RouteNames.studentApplications,
+          builder: (context, state) => const ApplicationsListScreen(),
         ),
 
         // Company — placeholders for Developer 4

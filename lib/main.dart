@@ -9,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/constants/supabase_config.dart';
 import 'core/navigation/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'features/applications/provider/applications_provider.dart';
 import 'features/auth/bloc/auth_bloc.dart';
 import 'features/auth/bloc/auth_event.dart';
 import 'features/auth/data/auth_repository.dart';
@@ -112,8 +113,14 @@ class _InternloomAppState extends State<InternloomApp> {
         // ChangeNotifierProvider and BlocProvider coexist fine in one
         // widget tree and there was no reason to force a rewrite of an
         // already-working, already-verified module.
-        child: ChangeNotifierProvider(
-          create: (_) => ProfileProvider(),
+        child: MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => ProfileProvider()),
+            // Application tracking (Developer 3) — plain ChangeNotifierProvider
+            // alongside ProfileProvider. Only ApplicationsListScreen reads
+            // this; the router doesn't need it (no ApplicationsGuard).
+            ChangeNotifierProvider(create: (_) => ApplicationsProvider()),
+          ],
           // _RouterShell reads AuthBloc and ProfileProvider once, stores
           // the GoRouter in StatefulWidget state so it is NEVER recreated
           // on subsequent builds — a new GoRouter would reset the entire
