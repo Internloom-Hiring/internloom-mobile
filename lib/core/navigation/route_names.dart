@@ -40,4 +40,9 @@ class RouteNames {
   // ─── Company Flow (Sprint 2 placeholders — Developer 4 owns screens) ──────
   static const String companyDashboard = 'company-dashboard';
   static const String companyApprovalWait = 'company-approval-wait';
+  static const String companyPostDrive = 'company-post-drive';
+  static const String companyMyDrives = 'company-my-drives';
+  static const String companyCandidateList = 'company-candidate-list';
+  static const String companyCandidateDetail = 'company-candidate-detail';
+  static const String companyPipelineFunnel = 'company-pipeline-funnel';
 }
