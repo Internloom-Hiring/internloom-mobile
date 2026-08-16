@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/widgets/branded_loading.dart';
-import '../../../profile/presentation/screens/profile_gate.dart';
 import '../../bloc/auth_bloc.dart';
 import '../../bloc/auth_event.dart';
-import '../../bloc/auth_state.dart';
-import 'login_screen.dart';
-import 'update_password_screen.dart';
 
-/// Branded Splash screen checking session status on application open
+/// Branded splash screen — fires [AppStarted] to trigger the initial
+/// session check then shows the branded loader.
+///
+/// All navigation away from this screen is handled declaratively by
+/// AppRouter's redirect callback (which subscribes to AuthBloc via
+/// [_RouterRefreshListenable]). There is no BlocListener here because
+/// adding one would create a race between the listener's imperative
+/// [context.goNamed] call and the router's declarative redirect —
+/// whichever fires second would try to navigate on a context that may
+/// already be detached from the navigator.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -25,36 +30,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is PasswordRecoveryRequired) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => const UpdatePasswordScreen(),
-            ),
-          );
-        } else if (state is Authenticated) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => const ProfileGate(),
-            ),
-          );
-        } else if (state is AuthFailure) {
-          // Surface the error on the login screen (e.g. expired recovery link).
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => LoginScreen(initialError: state.message),
-            ),
-          );
-        } else if (state is Unauthenticated) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => const LoginScreen(),
-            ),
-          );
-        }
-      },
-      child: const BrandedLoading(text: 'Loading authentication session...'),
-    );
+    return const BrandedLoading(text: 'Loading authentication session...');
   }
 }

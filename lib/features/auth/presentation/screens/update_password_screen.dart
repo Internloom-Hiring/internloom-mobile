@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/navigation/route_names.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/error_banner.dart';
@@ -8,7 +10,6 @@ import '../../../../core/widgets/primary_button.dart';
 import '../../bloc/auth_bloc.dart';
 import '../../bloc/auth_event.dart';
 import '../../bloc/auth_state.dart';
-import 'login_screen.dart';
 
 /// Screen for entering and saving a new password after password recovery link is clicked
 class UpdatePasswordScreen extends StatefulWidget {
@@ -171,13 +172,7 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                           const SizedBox(height: 24),
                           PrimaryButton(
                             text: 'Proceed to Login',
-                            onPressed: () {
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                  builder: (_) => const LoginScreen(),
-                                ),
-                              );
-                            },
+                            onPressed: () => context.goNamed(RouteNames.login),
                           ),
                         ] else ...[
                           // New Password Input

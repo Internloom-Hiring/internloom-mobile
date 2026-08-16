@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../constants/theme.dart';
+import 'package:internloom_mobile/core/constants/app_colors.dart';
 import '../../data/models/project_entry.dart';
 import '../../provider/profile_provider.dart';
 import '../../utils/validators.dart';
@@ -54,7 +55,7 @@ class _EditProjectsScreenState extends State<EditProjectsScreen> {
     setState(() => _isSaving = false);
     if (!mounted) return;
     if (ok) {
-      Navigator.of(context).pop();
+      context.pop();
     } else {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(provider.errorMessage ?? 'Save failed')));
@@ -158,7 +159,7 @@ class _ProjectEntrySheetState extends State<_ProjectEntrySheet> {
       description: _descriptionController.text.trim(),
       link: _linkController.text.trim(),
     );
-    Navigator.of(context).pop(entry);
+    context.pop(entry);
   }
 
   @override

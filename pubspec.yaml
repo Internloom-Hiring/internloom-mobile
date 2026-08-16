@@ -40,6 +40,7 @@ dependencies:
   google_fonts: ^8.2.1
   flutter_dotenv: ^6.0.1
   app_links: ^7.2.1
+  go_router: ^14.0.0
 
   # State management for the Student Side profile feature
   # (lib/features/profile/) — added when that module was merged in.

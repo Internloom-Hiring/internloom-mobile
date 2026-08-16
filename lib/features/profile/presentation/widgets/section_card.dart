@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../constants/theme.dart';
+import 'package:internloom_mobile/core/constants/app_colors.dart';
 
 /// A single "profile section" block on the view screen (Education,
 /// Skills, Experience, etc.), each with its own Edit action — Section

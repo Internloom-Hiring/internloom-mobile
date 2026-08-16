@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/navigation/route_names.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/error_banner.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../../core/widgets/social_auth_button.dart';
-import '../../../profile/presentation/screens/profile_gate.dart';
 import '../../bloc/auth_bloc.dart';
 import '../../bloc/auth_event.dart';
 import '../../bloc/auth_state.dart';
-import 'login_screen.dart';
 
 /// Student Registration Screen
 class RegisterScreen extends StatefulWidget {
@@ -63,13 +63,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: SafeArea(
         child: BlocConsumer<AuthBloc, AuthState>(
           listener: (context, state) {
-            if (state is Authenticated) {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (_) => const ProfileGate(),
-                ),
-              );
-            } else if (state is EmailVerificationRequired) {
+            // Navigation on Authenticated is handled declaratively by
+            // AppRouter's redirect — see LoginScreen for the full rationale.
+            if (state is EmailVerificationRequired) {
               setState(() {
                 _infoMessage =
                     'Registration successful! A verification link has been sent to ${state.email}. Please verify your email before logging in.';
@@ -305,11 +301,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               onTap: isLoading
                                   ? null
                                   : () {
-                                      Navigator.of(context).pushReplacement(
-                                        MaterialPageRoute(
-                                          builder: (_) => const LoginScreen(),
-                                        ),
-                                      );
+                                      context.goNamed(RouteNames.login);
                                     },
                               child: Text(
                                 'Log In',

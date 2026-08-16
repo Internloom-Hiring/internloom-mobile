@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/navigation/route_names.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../bloc/auth_bloc.dart';
 import '../../bloc/auth_event.dart';
 import '../../bloc/auth_state.dart';
-import 'login_screen.dart';
 
 /// Temporary Authenticated Boundary Placeholder Screen
 /// Note: Do NOT implement Home/Jobs/Swipe functionality in this module.
@@ -19,11 +20,7 @@ class AuthenticatedPlaceholderScreen extends StatelessWidget {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is Unauthenticated) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => const LoginScreen(),
-            ),
-          );
+          context.goNamed(RouteNames.login);
         }
       },
       builder: (context, state) {

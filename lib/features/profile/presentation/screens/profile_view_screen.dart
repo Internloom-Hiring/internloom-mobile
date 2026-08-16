@@ -1,28 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../constants/theme.dart';
+import 'package:internloom_mobile/core/constants/app_colors.dart';
+import 'package:internloom_mobile/core/navigation/route_names.dart';
+import '../../../../features/auth/bloc/auth_bloc.dart';
+import '../../../../features/auth/bloc/auth_event.dart';
 import '../../provider/profile_provider.dart';
 import '../widgets/completion_meter.dart';
 import '../widgets/section_card.dart';
-import 'edit_about_screen.dart';
-import 'edit_achievements_screen.dart';
-import 'edit_certifications_screen.dart';
-import 'edit_college_verification_screen.dart';
-import 'edit_education_screen.dart';
-import 'edit_headline_photo_screen.dart'; // EditBasicInfoScreen — see file for naming note
-import 'edit_projects_screen.dart';
-import 'edit_resume_screen.dart';
-import 'edit_skills_screen.dart';
-import 'edit_social_links_screen.dart'; // EditLinkedinScreen — see file for naming note
 
 /// The profile screen, restructured to match the real `students`
 /// table exactly. No cover banner / profile photo section (no columns
 /// for them) and no Experience section (no column) — see
 /// README_STUDENT_SIDE.md for the full list of adaptations made once
 /// the actual schema was confirmed.
-class ProfileViewScreen extends StatelessWidget {
+///
+/// Triggers [ProfileProvider.load()] in [initState] — this is the role
+/// that ProfileGate used to play before go_router took over routing.
+/// Without it ProfileProvider stays in [ProfileLoadState.initial] and
+/// the loading spinner never resolves.
+class ProfileViewScreen extends StatefulWidget {
   const ProfileViewScreen({super.key});
+
+  @override
+  State<ProfileViewScreen> createState() => _ProfileViewScreenState();
+}
+
+class _ProfileViewScreenState extends State<ProfileViewScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Kick off the profile load if it hasn't started yet. Using
+    // addPostFrameCallback ensures the widget tree is fully built
+    // before we read from context and call notifyListeners.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = context.read<ProfileProvider>();
+      if (provider.loadState == ProfileLoadState.initial) {
+        provider.load();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +72,43 @@ class ProfileViewScreen extends StatelessWidget {
         final profile = provider.profile!;
 
         return Scaffold(
-          appBar: AppBar(title: const Text('My Profile')),
+          appBar: AppBar(
+            title: const Text('My Profile'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.logout),
+                color: AppColors.danger,
+                tooltip: 'Log out',
+                onPressed: () async {
+                  // Show a quick confirmation so users don't log out by accident.
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      title: const Text('Log out?'),
+                      content: const Text('You will be returned to the login screen.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+                          child: const Text('Log out'),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirmed == true && context.mounted) {
+                    // Dispatch logout — AuthBloc will emit Unauthenticated,
+                    // which _RouterRefreshListenable picks up and the redirect
+                    // automatically navigates to /login.
+                    context.read<AuthBloc>().add(const LogoutSubmitted());
+                  }
+                },
+              ),
+            ],
+          ),
           body: ListView(
             padding: const EdgeInsets.all(AppSpacing.md),
             children: [
@@ -62,8 +116,7 @@ class ProfileViewScreen extends StatelessWidget {
                 fullName: profile.fullName,
                 headline: profile.displayHeadline,
                 phone: profile.phone.isEmpty ? null : '${profile.countryCode} ${profile.phone}',
-                onEdit: () => Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (_) => const EditBasicInfoScreen())),
+                onEdit: () => context.pushNamed(RouteNames.studentEditBasic),
               ),
               const SizedBox(height: AppSpacing.md),
               CompletionMeter(percent: provider.completionPct, missingItems: provider.missingItems),
@@ -72,16 +125,14 @@ class ProfileViewScreen extends StatelessWidget {
                 title: 'About me',
                 isEmpty: profile.aboutMe.trim().isEmpty,
                 emptyLabel: 'Add a short bio so recruiters get a sense of you.',
-                onEdit: () => Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (_) => const EditAboutScreen())),
+                onEdit: () => context.pushNamed(RouteNames.studentEditAbout),
                 child: Text(profile.aboutMe),
               ),
               SectionCard(
                 title: 'Education',
                 isEmpty: profile.collegeName.trim().isEmpty,
                 emptyLabel: 'Required — add your education.',
-                onEdit: () => Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (_) => const EditEducationScreen())),
+                onEdit: () => context.pushNamed(RouteNames.studentEditEducation),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -96,8 +147,7 @@ class ProfileViewScreen extends StatelessWidget {
                 title: 'College verification',
                 isEmpty: profile.collegeEmail.trim().isEmpty,
                 emptyLabel: 'Verify your college email or ID to build trust with companies.',
-                onEdit: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const EditCollegeVerificationScreen())),
+                onEdit: () => context.pushNamed(RouteNames.studentEditVerification),
                 child: Row(
                   children: [
                     Icon(
@@ -114,8 +164,7 @@ class ProfileViewScreen extends StatelessWidget {
                 title: 'Skills',
                 isEmpty: profile.skills.isEmpty,
                 emptyLabel: 'Required — add at least 3 skills.',
-                onEdit: () => Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (_) => const EditSkillsScreen())),
+                onEdit: () => context.pushNamed(RouteNames.studentEditSkills),
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -126,8 +175,7 @@ class ProfileViewScreen extends StatelessWidget {
                 title: 'Projects & portfolio links',
                 isEmpty: profile.projects.isEmpty,
                 emptyLabel: 'Optional — add a project to stand out.',
-                onEdit: () => Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (_) => const EditProjectsScreen())),
+                onEdit: () => context.pushNamed(RouteNames.studentEditProjects),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: profile.projects
@@ -141,9 +189,8 @@ class ProfileViewScreen extends StatelessWidget {
               SectionCard(
                 title: 'Certifications',
                 isEmpty: profile.certifications.isEmpty,
-                emptyLabel: 'Optional — add any certifications you’ve earned.',
-                onEdit: () => Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (_) => const EditCertificationsScreen())),
+                emptyLabel: 'Optional — add any certifications you\'ve earned.',
+                onEdit: () => context.pushNamed(RouteNames.studentEditCertifications),
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -154,8 +201,7 @@ class ProfileViewScreen extends StatelessWidget {
                 title: 'Achievements',
                 isEmpty: profile.achievements.isEmpty,
                 emptyLabel: 'Optional — add awards, competitions, or other wins.',
-                onEdit: () => Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (_) => const EditAchievementsScreen())),
+                onEdit: () => context.pushNamed(RouteNames.studentEditAchievements),
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -166,8 +212,7 @@ class ProfileViewScreen extends StatelessWidget {
                 title: 'Resume',
                 isEmpty: profile.resumePath == null || profile.resumePath!.isEmpty,
                 emptyLabel: 'Required — upload a PDF resume.',
-                onEdit: () => Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (_) => const EditResumeScreen())),
+                onEdit: () => context.pushNamed(RouteNames.studentEditResume),
                 child: Row(
                   children: [
                     const Icon(Icons.picture_as_pdf_outlined, color: AppColors.primary),
@@ -185,8 +230,7 @@ class ProfileViewScreen extends StatelessWidget {
                 title: 'LinkedIn',
                 isEmpty: profile.linkedinUrl.trim().isEmpty,
                 emptyLabel: 'Optional — add your LinkedIn profile link.',
-                onEdit: () => Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (_) => const EditLinkedinScreen())),
+                onEdit: () => context.pushNamed(RouteNames.studentEditLinkedin),
                 child: Text(profile.linkedinUrl),
               ),
             ],
