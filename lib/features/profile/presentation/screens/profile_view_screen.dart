@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../auth/bloc/auth_bloc.dart';
+import '../../../auth/bloc/auth_event.dart';
 import '../../../../constants/theme.dart';
 import '../../provider/profile_provider.dart';
 import '../widgets/completion_meter.dart';
@@ -54,7 +56,19 @@ class ProfileViewScreen extends StatelessWidget {
         final profile = provider.profile!;
 
         return Scaffold(
-          appBar: AppBar(title: const Text('My Profile')),
+          appBar: AppBar(
+            title: const Text('My Profile'),
+            actions: [
+              IconButton(
+                key: const Key('logoutButton'),
+                icon: const Icon(Icons.logout),
+                tooltip: 'Log Out',
+                onPressed: () {
+                  context.read<AuthBloc>().add(const LogoutSubmitted());
+                },
+              ),
+            ],
+          ),
           body: ListView(
             padding: const EdgeInsets.all(AppSpacing.md),
             children: [
@@ -188,6 +202,22 @@ class ProfileViewScreen extends StatelessWidget {
                 onEdit: () => Navigator.of(context)
                     .push(MaterialPageRoute(builder: (_) => const EditLinkedinScreen())),
                 child: Text(profile.linkedinUrl),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                child: OutlinedButton.icon(
+                  key: const Key('logoutProfileButton'),
+                  onPressed: () {
+                    context.read<AuthBloc>().add(const LogoutSubmitted());
+                  },
+                  icon: const Icon(Icons.logout, color: AppColors.error),
+                  label: const Text('Log Out', style: TextStyle(color: AppColors.error)),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.error),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
               ),
             ],
           ),
