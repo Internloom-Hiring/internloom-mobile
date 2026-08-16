@@ -75,13 +75,12 @@ class _PostDriveScreenState extends State<PostDriveScreen> {
       await client.from('placement_drives').insert({
         'company_id': userId,
         'status': 'pending', // Always pending initially
-        'title': _titleController.text.trim(),
-        'description': _descriptionController.text.trim(),
+        'job_title': _titleController.text.trim(),
+        'job_description': _descriptionController.text.trim(),
         'ctc': _ctcController.text.trim(),
         'location': _locationController.text.trim(),
-        'minimum_cgpa': double.tryParse(_cgpaController.text.trim()),
-        'required_skills': skillsList,
-        'last_date_to_apply': _lastDateToApply!.toIso8601String(),
+        'eligibility_criteria': 'Min CGPA: ${_cgpaController.text.trim()}\nSkills: ${skillsList.join(', ')}',
+        'application_deadline': _lastDateToApply!.toIso8601String(),
       });
 
       if (mounted) {

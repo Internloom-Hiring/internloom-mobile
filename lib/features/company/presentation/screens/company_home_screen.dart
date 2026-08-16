@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-// import 'package:go_router/go_router.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/navigation/route_names.dart';
 import '../../../../core/constants/app_colors.dart';
 
 class CompanyHomeScreen extends StatefulWidget {
@@ -58,6 +59,14 @@ class _CompanyHomeScreenState extends State<CompanyHomeScreen> {
         title: const Text('Company Dashboard', style: TextStyle(color: AppColors.textPrimary)),
         backgroundColor: AppColors.white,
         elevation: 1,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person, color: AppColors.textPrimary),
+            onPressed: () {
+              context.pushNamed(RouteNames.companyProfile);
+            },
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
@@ -107,7 +116,7 @@ class _CompanyHomeScreenState extends State<CompanyHomeScreen> {
                           padding: const EdgeInsets.all(AppSpacing.md),
                         ),
                         onPressed: () {
-                          // TODO: Navigate to Post a Drive route when it's added to route_names.dart
+                          context.pushNamed(RouteNames.companyPostDrive);
                         },
                         icon: const Icon(Icons.add),
                         label: const Text('Post a Drive'),
@@ -120,7 +129,7 @@ class _CompanyHomeScreenState extends State<CompanyHomeScreen> {
                           padding: const EdgeInsets.all(AppSpacing.md),
                         ),
                         onPressed: () {
-                          // TODO: Navigate to My Drives route when it's added to route_names.dart
+                          context.pushNamed(RouteNames.companyMyDrives);
                         },
                         icon: const Icon(Icons.list_alt),
                         label: const Text('My Drives'),

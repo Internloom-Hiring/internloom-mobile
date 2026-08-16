@@ -29,8 +29,13 @@ import '../../features/profile/presentation/screens/edit_achievements_screen.dar
 import '../../features/profile/presentation/screens/edit_resume_screen.dart';
 import '../../features/profile/presentation/screens/edit_social_links_screen.dart'; // EditLinkedinScreen
 
-// Company screens
 import '../../features/company/presentation/screens/company_home_screen.dart';
+import '../../features/company/presentation/screens/company_profile_screen.dart';
+import '../../features/company/presentation/screens/post_drive_screen.dart';
+import '../../features/company/presentation/screens/my_drives_screen.dart';
+import '../../features/company/presentation/screens/candidate_list_screen.dart';
+import '../../features/company/presentation/screens/candidate_detail_screen.dart';
+import '../../features/company/presentation/screens/pipeline_view_screen.dart';
 
 /// Central router configuration for InternLoom Mobile.
 ///
@@ -250,6 +255,11 @@ class AppRouter {
           builder: (context, state) => const CompanyHomeScreen(),
         ),
         GoRoute(
+          path: '/company/profile',
+          name: RouteNames.companyProfile,
+          builder: (context, state) => const CompanyProfileScreen(),
+        ),
+        GoRoute(
           path: '/company/approval-wait',
           name: RouteNames.companyApprovalWait,
           builder: (context, state) => const _PlaceholderScreen(
@@ -260,42 +270,40 @@ class AppRouter {
         GoRoute(
           path: '/company/post-drive',
           name: RouteNames.companyPostDrive,
-          builder: (context, state) => const _PlaceholderScreen(
-            title: 'Post a Drive',
-            message: 'Post a drive screen — Developer 4 will implement this screen.',
-          ),
+          builder: (context, state) => const PostDriveScreen(),
         ),
         GoRoute(
           path: '/company/drives',
           name: RouteNames.companyMyDrives,
-          builder: (context, state) => const _PlaceholderScreen(
-            title: 'My Drives',
-            message: 'My drives screen — Developer 4 will implement this screen.',
-          ),
+          builder: (context, state) => const MyDrivesScreen(),
         ),
         GoRoute(
           path: '/company/candidates',
           name: RouteNames.companyCandidateList,
-          builder: (context, state) => const _PlaceholderScreen(
-            title: 'Candidate List',
-            message: 'Candidate list screen — Developer 4 will implement this screen.',
-          ),
+          builder: (context, state) {
+            final driveId = state.uri.queryParameters['driveId'] ?? (state.extra as String? ?? '');
+            return CandidateListScreen(driveId: driveId);
+          },
         ),
         GoRoute(
           path: '/company/candidates/:id',
           name: RouteNames.companyCandidateDetail,
-          builder: (context, state) => const _PlaceholderScreen(
-            title: 'Candidate Detail',
-            message: 'Candidate detail screen — Developer 4 will implement this screen.',
-          ),
+          builder: (context, state) {
+            final applicationId = state.pathParameters['id'] ?? '';
+            final studentId = state.uri.queryParameters['studentId'] ?? (state.extra as String? ?? '');
+            return CandidateDetailScreen(
+              applicationId: applicationId,
+              studentId: studentId,
+            );
+          },
         ),
         GoRoute(
           path: '/company/pipeline-funnel',
           name: RouteNames.companyPipelineFunnel,
-          builder: (context, state) => const _PlaceholderScreen(
-            title: 'Pipeline Funnel',
-            message: 'Pipeline funnel screen — Developer 4 will implement this screen.',
-          ),
+          builder: (context, state) {
+            final driveId = state.uri.queryParameters['driveId'] ?? (state.extra as String? ?? '');
+            return PipelineViewScreen(driveId: driveId);
+          },
         ),
       ];
 }

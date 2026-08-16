@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/navigation/route_names.dart';
 import '../../../../core/constants/app_colors.dart';
 
 class MyDrivesScreen extends StatefulWidget {
@@ -49,8 +51,9 @@ class _MyDrivesScreenState extends State<MyDrivesScreen> {
   }
 
   void _onDriveTapped(Map<String, dynamic> drive) {
-    // Navigate to Candidate List screen
-    // TODO: wire navigation when route is added to route_names.dart
+    if (drive['id'] != null) {
+      context.pushNamed(RouteNames.companyCandidateList, queryParameters: {'driveId': drive['id']});
+    }
   }
 
   Future<void> _onCloseDrive(Map<String, dynamic> drive) async {
@@ -128,7 +131,7 @@ class _MyDrivesScreenState extends State<MyDrivesScreen> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          drive['title'] ?? 'Untitled Drive',
+                                          drive['job_title'] ?? 'Untitled Drive',
                                           style: const TextStyle(
                                             color: AppColors.textPrimary,
                                             fontWeight: FontWeight.bold,

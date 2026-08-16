@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/navigation/route_names.dart';
 import '../../../../core/constants/app_colors.dart';
 
 class CandidateListScreen extends StatefulWidget {
@@ -23,10 +25,30 @@ class _CandidateListScreenState extends State<CandidateListScreen> {
   bool _isLoading = true;
   String? _error;
 
+  Map<String, dynamic>? _driveDetails;
+
   @override
   void initState() {
     super.initState();
+    _fetchDriveDetails();
     _fetchCandidates();
+  }
+
+  Future<void> _fetchDriveDetails() async {
+    try {
+      final res = await Supabase.instance.client
+          .from('placement_drives')
+          .select('*')
+          .eq('id', widget.driveId)
+          .maybeSingle();
+      if (mounted && res != null) {
+        setState(() {
+          _driveDetails = res;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching drive details: $e');
+    }
   }
 
   @override
@@ -85,13 +107,50 @@ class _CandidateListScreenState extends State<CandidateListScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Candidate List', style: TextStyle(color: AppColors.textPrimary)),
+        title: const Text('Candidates', style: TextStyle(color: AppColors.textPrimary)),
         backgroundColor: AppColors.white,
         elevation: 1,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bar_chart),
+            tooltip: 'Pipeline Funnel',
+            onPressed: () {
+              context.pushNamed(
+                RouteNames.companyPipelineFunnel,
+                queryParameters: {'driveId': widget.driveId},
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
+          if (_driveDetails != null)
+            Container(
+              color: AppColors.white,
+              child: ExpansionTile(
+                title: const Text('Job Details', style: TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text(_driveDetails!['job_title'] ?? 'N/A', style: const TextStyle(color: AppColors.textSecondary)),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildDetailRow('Location', _driveDetails!['location']),
+                        const SizedBox(height: 8),
+                        _buildDetailRow('CTC', _driveDetails!['ctc']),
+                        const SizedBox(height: 8),
+                        _buildDetailRow('Description', _driveDetails!['job_description']),
+                        const SizedBox(height: 8),
+                        _buildDetailRow('Eligibility Criteria', _driveDetails!['eligibility_criteria']),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           _buildFilterSection(),
           Expanded(
             child: _isLoading
@@ -126,11 +185,24 @@ class _CandidateListScreenState extends State<CandidateListScreen> {
                               return Card(
                                 color: AppColors.cardBackground,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.sm)),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(AppSpacing.md),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(AppSpacing.sm),
+                                  onTap: () {
+                                    final appId = candidate['application_id']?.toString() ?? '';
+                                    final stdId = candidate['student_id']?.toString() ?? '';
+                                    if (appId.isNotEmpty && stdId.isNotEmpty) {
+                                      context.pushNamed(
+                                        RouteNames.companyCandidateDetail,
+                                        pathParameters: {'id': appId},
+                                        queryParameters: {'studentId': stdId},
+                                      );
+                                    }
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(AppSpacing.md),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,8 +245,9 @@ class _CandidateListScreenState extends State<CandidateListScreen> {
                                     ],
                                   ),
                                 ),
-                              );
-                            },
+                              ),
+                            );
+                          },
                           ),
           ),
         ],
@@ -245,6 +318,27 @@ class _CandidateListScreenState extends State<CandidateListScreen> {
           ),
         ],
       ),
+    );
+  }
+  Widget _buildDetailRow(String label, dynamic value) {
+    final displayValue = value?.toString() ?? 'N/A';
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 120,
+          child: Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            displayValue,
+            style: const TextStyle(color: AppColors.textSecondary),
+          ),
+        ),
+      ],
     );
   }
 }
