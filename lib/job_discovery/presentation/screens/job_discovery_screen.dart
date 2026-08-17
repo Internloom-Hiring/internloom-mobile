@@ -9,6 +9,7 @@ import '../../provider/job_discovery_provider.dart';
 import '../widgets/internloom_brand.dart';
 import '../widgets/job_discovery_filter_sheet.dart';
 import '../widgets/swipe_deck.dart';
+import '../widgets/student_navigation_bar.dart';
 import '../../../core/navigation/route_names.dart';
 
 class JobDiscoveryScreen extends StatelessWidget {
@@ -67,42 +68,22 @@ class _JobDiscoveryView extends StatelessWidget {
         ],
       ),
       body: _buildBody(context, provider),
-      bottomNavigationBar: NavigationBar(
-        backgroundColor: InternloomColors.white,
-        indicatorColor: InternloomColors.greenLight,
-        selectedIndex: 0,
-        onDestinationSelected: (index) {
-          if (index == 1) {
-            context.goNamed(RouteNames.studentSavedJobs);
-          } else if (index == 2) {
-            context.goNamed(RouteNames.studentApplications);
-          } else if (index == 3) {
-            context.goNamed(RouteNames.studentProfile);
-          }
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.work_outline),
-            selectedIcon: Icon(Icons.work),
-            label: 'Discover',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.bookmark_border),
-            selectedIcon: Icon(Icons.bookmark),
-            label: 'Saved',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.assignment_outlined),
-            selectedIcon: Icon(Icons.assignment),
-            label: 'Applications',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
+      // Keep Undo at a stable, highly visible position. In particular, a
+      // swipe of the final card changes the body to the caught-up state; a
+      // body-local control would disappear before the three-second window.
+      floatingActionButton: provider.canUndo
+          ? FloatingActionButton.extended(
+              key: const Key('undoSwipeButton'),
+              backgroundColor: InternloomColors.leafGreen,
+              foregroundColor: InternloomColors.white,
+              elevation: 4,
+              onPressed: () => _undo(context, provider),
+              icon: const Icon(Icons.undo),
+              label: const Text('Undo'),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      bottomNavigationBar: const StudentNavigationBar(selectedIndex: 0),
     );
   }
 
@@ -181,28 +162,7 @@ class _JobDiscoveryView extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           const _SwipeHint(),
-          // This control is driven by provider.canUndo. The provider clears
-          // it after exactly 3 seconds, so there is no stale undo action.
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 180),
-            child: provider.canUndo
-                ? Padding(
-                    key: const ValueKey('undo-visible'),
-                    padding: const EdgeInsets.only(top: 6),
-                    child: TextButton.icon(
-                      style: TextButton.styleFrom(
-                        foregroundColor: InternloomColors.leafGreen,
-                      ),
-                      onPressed: () => _undo(context, provider),
-                      icon: const Icon(Icons.undo),
-                      label: const Text('Undo last swipe'),
-                    ),
-                  )
-                : const SizedBox(
-                    key: ValueKey('undo-hidden'),
-                    height: 40,
-                  ),
-          ),
+          const SizedBox(height: 16),
           if (provider.isLoading)
             const LinearProgressIndicator(
               minHeight: 2,
