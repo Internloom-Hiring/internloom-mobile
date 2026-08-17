@@ -212,7 +212,10 @@ class AppRouter {
         GoRoute(
           path: '/student/profile',
           name: RouteNames.studentProfile,
-          builder: (context, state) => const ProfileViewScreen(),
+          pageBuilder: (context, state) => _studentTabPage(
+            state: state,
+            child: const ProfileViewScreen(),
+          ),
           routes: [
             GoRoute(
               path: 'edit-basic',
@@ -271,12 +274,18 @@ class AppRouter {
         GoRoute(
           path: '/student/discover',
           name: RouteNames.studentDiscover,
-          builder: (context, state) => const JobDiscoveryScreen(),
+          pageBuilder: (context, state) => _studentTabPage(
+            state: state,
+            child: const JobDiscoveryScreen(),
+          ),
         ),
         GoRoute(
           path: '/student/saved',
           name: RouteNames.studentSavedJobs,
-          builder: (context, state) => const SavedJobsScreen(),
+          pageBuilder: (context, state) => _studentTabPage(
+            state: state,
+            child: const SavedJobsScreen(),
+          ),
         ),
         GoRoute(
           path: '/student/job/:driveId',
@@ -295,7 +304,10 @@ class AppRouter {
         GoRoute(
           path: '/student/applications',
           name: RouteNames.studentApplications,
-          builder: (context, state) => const ApplicationsListScreen(),
+          pageBuilder: (context, state) => _studentTabPage(
+            state: state,
+            child: const ApplicationsListScreen(),
+          ),
         ),
 
         // Company — placeholders for Developer 4
@@ -356,6 +368,34 @@ class AppRouter {
           },
         ),
       ];
+
+  /// Tabs animate in the direction of travel. A move to a lower-index tab
+  /// enters from the left, matching a left swipe when navigating backwards.
+  static CustomTransitionPage<void> _studentTabPage({
+    required GoRouterState state,
+    required Widget child,
+  }) {
+    final isBackNavigation =
+        state.uri.queryParameters['tabDirection'] == 'back';
+    final begin = isBackNavigation ? const Offset(-1, 0) : const Offset(1, 0);
+
+    return CustomTransitionPage<void>(
+      key: state.pageKey,
+      child: child,
+      transitionDuration: const Duration(milliseconds: 240),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        final curvedAnimation = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        );
+        return SlideTransition(
+          position: Tween<Offset>(begin: begin, end: Offset.zero)
+              .animate(curvedAnimation),
+          child: child,
+        );
+      },
+    );
+  }
 }
 
 // ─── Combined refresh listenable ──────────────────────────────────────────────

@@ -5,6 +5,7 @@ import 'package:internloom_mobile/core/navigation/route_names.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../job_discovery/presentation/widgets/internloom_brand.dart';
+import '../../../../job_discovery/presentation/widgets/student_navigation_bar.dart';
 import '../../data/models/application_entry.dart';
 import '../../provider/applications_provider.dart';
 import '../widgets/status_badge.dart';
@@ -60,42 +61,7 @@ class _ApplicationsListScreenState extends State<ApplicationsListScreen> {
         onRefresh: provider.refresh,
         child: _buildBody(provider),
       ),
-      bottomNavigationBar: NavigationBar(
-        backgroundColor: InternloomColors.white,
-        indicatorColor: InternloomColors.greenLight,
-        selectedIndex: 2,
-        onDestinationSelected: (index) {
-          if (index == 0) {
-            context.goNamed(RouteNames.studentDiscover);
-          } else if (index == 1) {
-            context.goNamed(RouteNames.studentSavedJobs);
-          } else if (index == 3) {
-            context.goNamed(RouteNames.studentProfile);
-          }
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.work_outline),
-            selectedIcon: Icon(Icons.work),
-            label: 'Discover',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.bookmark_border),
-            selectedIcon: Icon(Icons.bookmark),
-            label: 'Saved',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.assignment_outlined),
-            selectedIcon: Icon(Icons.assignment),
-            label: 'Applications',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
+      bottomNavigationBar: const StudentNavigationBar(selectedIndex: 2),
     );
   }
 

@@ -39,6 +39,7 @@ class SupabaseJobDiscoveryRepository implements JobDiscoveryRepository {
     await _loadExclusions(studentId);
 
     final results = <PlacementDrive>[];
+    final now = DateTime.now();
     var exhausted = false;
 
     while (results.length < limit && !exhausted) {
@@ -57,6 +58,13 @@ class SupabaseJobDiscoveryRepository implements JobDiscoveryRepository {
         final drive = PlacementDrive.fromMatchScoreRow(row);
 
         if (drive.status != 'approved') continue;
+        // A saved job may be retained in the database after its deadline,
+        // but no expired drive belongs in the active discovery stack.
+        // This is intentionally checked here as well as in Saved Jobs: the
+        // ranked query is based on match_scores and cannot rely on every
+        // backend deployment exposing a deadline filter through that join.
+        final deadline = drive.applicationDeadline;
+        if (deadline != null && !deadline.isAfter(now)) continue;
         if (_appliedDriveIds.contains(drive.id)) continue;
         if (_swipedDriveIds.contains(drive.id)) continue;
 
