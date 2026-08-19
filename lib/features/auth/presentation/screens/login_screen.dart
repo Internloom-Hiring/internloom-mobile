@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/navigation/route_names.dart';
@@ -74,18 +75,10 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Center(
-                child: Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: AppColors.leafGreen,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Icon(
-                    Icons.school_rounded,
-                    color: AppColors.white,
-                    size: 34,
-                  ),
+                child: SvgPicture.asset(
+                  'assets/images/internloom_logo.svg',
+                  width: 72,
+                  height: 72,
                 ),
               ),
               const SizedBox(height: 24),
@@ -243,18 +236,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 8),
                 // Logo & Brand Header
                 Center(
-                  child: Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: AppColors.leafGreen,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(
-                      Icons.school_rounded,
-                      color: AppColors.white,
-                      size: 34,
-                    ),
+                  child: SvgPicture.asset(
+                    'assets/images/internloom_logo.svg',
+                    width: 72,
+                    height: 72,
                   ),
                 ),
                 const SizedBox(height: 16),

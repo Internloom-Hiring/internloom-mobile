@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../constants/app_colors.dart';
 
 /// Branded splash/loading widget with Internloom logo placeholder
@@ -15,25 +16,10 @@ class BrandedLoading extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: AppColors.leafGreen,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.leafGreen.withValues(alpha: 0.3),
-                    blurRadius: 16,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.school_rounded,
-                color: AppColors.white,
-                size: 44,
-              ),
+            SvgPicture.asset(
+              'assets/images/internloom_logo.svg',
+              width: 96,
+              height: 96,
             ),
             const SizedBox(height: 24),
             Text(
