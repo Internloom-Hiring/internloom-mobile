@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/navigation/route_names.dart';
@@ -56,7 +57,18 @@ class _CompanyHomeScreenState extends State<CompanyHomeScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Company Dashboard', style: TextStyle(color: AppColors.textPrimary)),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SvgPicture.asset(
+              'assets/images/internloom_logo.svg',
+              width: 28,
+              height: 28,
+            ),
+            const SizedBox(width: 10),
+            const Text('Company Dashboard', style: TextStyle(color: AppColors.textPrimary)),
+          ],
+        ),
         backgroundColor: AppColors.white,
         elevation: 1,
         actions: [
