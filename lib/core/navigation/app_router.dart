@@ -126,24 +126,13 @@ class AppRouter {
     const authOnlyPaths = <String>['/login', '/register', '/'];
     if (authOnlyPaths.contains(path)) {
       if (role == 'company') return '/company/dashboard';
-
-      // For students, wait until ProfileProvider has loaded so the
-      // completion guard can choose Discover vs Setup correctly.
-      final profileLoaded = profileProvider.loadState == ProfileLoadState.loaded ||
-          profileProvider.loadState == ProfileLoadState.error;
-      if (!profileLoaded) return null;
-
-      return profileProvider.hasGuidedSetupMinimum
-          ? '/student/discover'
-          : '/student/setup';
+      return '/student/discover';
     }
 
     if (role == 'company') {
       if (path.startsWith('/student')) return '/company/dashboard';
 
       // ── 4. CompanyApprovalGuard ───────────────────────────────────────────
-      // TODO(Dev4): replace metadata stub with a real CompanyProvider read
-      // once the public.companies table is in place.
       final approvalStatus =
           authState.user.userMetadata?['company_approval_status'] as String? ?? 'approved';
       final approved = approvalStatus == 'approved';
@@ -154,18 +143,6 @@ class AppRouter {
 
     // role == 'student' (default)
     if (path.startsWith('/company')) return '/student/profile';
-
-    // ── 3. ProfileCompletionGuard ─────────────────────────────────────────────
-    // Only enforce once the profile has actually finished loading so we don't
-    // bounce a user to /setup on a transient "not yet loaded" false-negative.
-    final profileLoaded = profileProvider.loadState == ProfileLoadState.loaded ||
-        profileProvider.loadState == ProfileLoadState.error;
-
-    if (profileLoaded) {
-      final complete = profileProvider.hasGuidedSetupMinimum;
-      if (!complete && path != '/student/setup') return '/student/setup';
-      if (complete && path == '/student/setup') return '/student/discover';
-    }
 
     return null;
   }

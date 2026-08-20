@@ -75,6 +75,11 @@ class _InternloomAppState extends State<InternloomApp> {
   /// Listens for incoming deep links (OAuth callbacks from browser)
   /// and passes the URL to Supabase so it can exchange the code for a session.
   void _handleIncomingDeepLinks() {
+    // Handle cold-start deep link on app launch
+    _appLinks.getInitialLink().then((uri) {
+      if (uri != null) _processDeepLink(uri);
+    });
+
     // Handle links received while app is already running
     _appLinks.uriLinkStream.listen((uri) {
       _processDeepLink(uri);
