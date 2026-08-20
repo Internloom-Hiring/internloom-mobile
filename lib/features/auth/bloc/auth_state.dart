@@ -68,3 +68,7 @@ class PasswordRecoveryRequired extends AuthState {
 class PasswordUpdatedSuccess extends AuthState {
   const PasswordUpdatedSuccess();
 }
+
+class CompanyRegistrationSuccess extends AuthState {
+  const CompanyRegistrationSuccess();
+}

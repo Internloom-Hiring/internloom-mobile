@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:internloom_mobile/core/constants/app_colors.dart';
-import 'package:internloom_mobile/core/navigation/route_names.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../job_discovery/presentation/widgets/internloom_brand.dart';
@@ -100,7 +98,7 @@ class _ApplicationsListScreenState extends State<ApplicationsListScreen> {
     return ListView.separated(
       padding: const EdgeInsets.all(AppSpacing.md),
       itemCount: provider.applications.length,
-      separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
+      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
       itemBuilder: (context, i) {
         final a = provider.applications[i];
         // Only applied/shortlisted applications can be withdrawn — once a

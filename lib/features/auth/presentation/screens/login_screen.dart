@@ -12,6 +12,7 @@ import '../../../../core/widgets/social_auth_button.dart';
 import '../../bloc/auth_bloc.dart';
 import '../../bloc/auth_event.dart';
 import '../../bloc/auth_state.dart';
+import 'company_register_screen.dart';
 
 /// Student Login Screen
 class LoginScreen extends StatefulWidget {
@@ -328,45 +329,47 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
 
                 // Divider
-                Row(
-                  children: [
-                    const Expanded(
-                      child: Divider(color: AppColors.border),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text(
-                        'OR',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(color: AppColors.muted),
+                if (_isStudent) ...[
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Divider(color: AppColors.border),
                       ),
-                    ),
-                    const Expanded(
-                      child: Divider(color: AppColors.border),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text(
+                          'OR',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: AppColors.muted),
+                        ),
+                      ),
+                      const Expanded(
+                        child: Divider(color: AppColors.border),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
 
-                // Social Buttons
-                SocialAuthButton(
-                  type: SocialType.google,
-                  isLoading: isLoading,
-                  onPressed: () {
-                    context.read<AuthBloc>().add(const GoogleLoginSubmitted());
-                  },
-                ),
-                const SizedBox(height: 12),
-                SocialAuthButton(
-                  type: SocialType.linkedin,
-                  isLoading: isLoading,
-                  onPressed: () {
-                    context.read<AuthBloc>().add(const LinkedInLoginSubmitted());
-                  },
-                ),
-                const SizedBox(height: 28),
+                  // Social Buttons
+                  SocialAuthButton(
+                    type: SocialType.google,
+                    isLoading: isLoading,
+                    onPressed: () {
+                      context.read<AuthBloc>().add(const GoogleLoginSubmitted());
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  SocialAuthButton(
+                    type: SocialType.linkedin,
+                    isLoading: isLoading,
+                    onPressed: () {
+                      context.read<AuthBloc>().add(const LinkedInLoginSubmitted());
+                    },
+                  ),
+                  const SizedBox(height: 28),
+                ],
 
                 // Register Navigation Link
                 Wrap(
@@ -384,7 +387,18 @@ class _LoginScreenState extends State<LoginScreen> {
                       onTap: isLoading
                           ? null
                           : () {
-                              context.goNamed(RouteNames.register);
+                              if (_isStudent) {
+                                context.goNamed(RouteNames.register);
+                              } else {
+                                // TODO(Dev 1): Swap this for a named route (e.g. RouteNames.companyRegister) once published.
+                                // Using direct navigation temporarily since no route exists for company registration.
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const CompanyRegisterScreen(),
+                                  ),
+                                );
+                              }
                             },
                       child: Text(
                         'Register',

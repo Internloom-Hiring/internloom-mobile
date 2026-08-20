@@ -38,6 +38,49 @@ class RegisterSubmitted extends AuthEvent {
   List<Object?> get props => [fullName, email, password, confirmPassword];
 }
 
+class CompanyRegisterSubmitted extends AuthEvent {
+  final String username;
+  final String email;
+  final String password;
+  final String confirmPassword;
+  final String companyName;
+  final String hrName;
+  final String hrContact;
+  final String? website;
+  final String? description;
+  final String? incorporationCertPath;
+  final String? pitchDeckPath;
+
+  const CompanyRegisterSubmitted({
+    required this.username,
+    required this.email,
+    required this.password,
+    required this.confirmPassword,
+    required this.companyName,
+    required this.hrName,
+    required this.hrContact,
+    this.website,
+    this.description,
+    this.incorporationCertPath,
+    this.pitchDeckPath,
+  });
+
+  @override
+  List<Object?> get props => [
+        username,
+        email,
+        password,
+        confirmPassword,
+        companyName,
+        hrName,
+        hrContact,
+        website,
+        description,
+        incorporationCertPath,
+        pitchDeckPath,
+      ];
+}
+
 class ForgotPasswordSubmitted extends AuthEvent {
   final String email;
 

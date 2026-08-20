@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/navigation/route_names.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../auth/bloc/auth_bloc.dart';
@@ -190,33 +188,46 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                         
                         CustomTextField(
                           label: 'Company Name',
+                          hint: 'Acme Corp',
+                          prefixIcon: Icons.business,
                           controller: _nameController,
                           enabled: _isEditing,
-                          validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                          validator: (v) => v == null || v.isEmpty ? 'Company Name is required' : null,
                         ),
                         const SizedBox(height: 16),
                         CustomTextField(
                           label: 'HR Name',
+                          hint: 'Jane Doe',
+                          prefixIcon: Icons.person_outline,
                           controller: _hrNameController,
                           enabled: _isEditing,
-                          validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                          validator: (v) => v == null || v.isEmpty ? 'HR Name is required' : null,
                         ),
                         const SizedBox(height: 16),
                         CustomTextField(
                           label: 'HR Contact',
+                          hint: '+1 234 567 8900',
+                          prefixIcon: Icons.phone_outlined,
+                          keyboardType: TextInputType.phone,
                           controller: _hrContactController,
                           enabled: _isEditing,
-                          validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                          validator: (v) => v == null || v.isEmpty ? 'HR Contact is required' : null,
                         ),
                         const SizedBox(height: 16),
                         CustomTextField(
-                          label: 'Website',
+                          label: 'Website (Optional)',
+                          hint: 'https://www.company.com',
+                          prefixIcon: Icons.language,
+                          keyboardType: TextInputType.url,
                           controller: _websiteController,
                           enabled: _isEditing,
                         ),
                         const SizedBox(height: 16),
                         CustomTextField(
-                          label: 'Company Description',
+                          label: 'Company Description (Optional)',
+                          hint: 'Tell us about your company...',
+                          keyboardType: TextInputType.multiline,
+                          maxLines: 3,
                           controller: _descriptionController,
                           enabled: _isEditing,
                         ),
