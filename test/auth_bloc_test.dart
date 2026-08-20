@@ -69,6 +69,34 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<supabase.AuthResponse> signUpCompany({
+    required String username,
+    required String email,
+    required String password,
+    required String companyName,
+    required String hrName,
+    required String hrContact,
+    String? website,
+    String? description,
+    String? incorporationCertPath,
+    String? pitchDeckPath,
+  }) async {
+    if (shouldThrow) {
+      throw const supabase.AuthException('Company already registered');
+    }
+    return supabase.AuthResponse(
+      session: null,
+      user: supabase.User(
+        id: 'test-company-id',
+        appMetadata: {},
+        userMetadata: {'full_name': hrName},
+        aud: 'authenticated',
+        createdAt: DateTime.now().toIso8601String(),
+      ),
+    );
+  }
+
+  @override
   Future<bool> signInWithGoogle() async => true;
 
   @override

@@ -24,6 +24,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with WidgetsBindingObserver {
     on<AppStarted>(_onAppStarted);
     on<LoginSubmitted>(_onLoginSubmitted);
     on<RegisterSubmitted>(_onRegisterSubmitted);
+    on<CompanyRegisterSubmitted>(_onCompanyRegisterSubmitted);
     on<ForgotPasswordSubmitted>(_onForgotPasswordSubmitted);
     on<GoogleLoginSubmitted>(_onGoogleLoginSubmitted);
     on<LinkedInLoginSubmitted>(_onLinkedInLoginSubmitted);
@@ -207,6 +208,71 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with WidgetsBindingObserver {
         } else {
           emit(Authenticated(response.user!));
         }
+      } else {
+        emit(const AuthFailure('Registration failed. Please try again.'));
+      }
+    } catch (e) {
+      emit(AuthFailure(ErrorFormatter.format(e)));
+    }
+  }
+
+  Future<void> _onCompanyRegisterSubmitted(
+    CompanyRegisterSubmitted event,
+    Emitter<AuthState> emit,
+  ) async {
+    final emailError = Validators.validateEmail(event.email);
+    if (emailError != null) {
+      emit(AuthFailure(emailError));
+      return;
+    }
+
+    if (event.password.length < 10) {
+      emit(const AuthFailure('Password must be at least 10 characters.'));
+      return;
+    }
+
+    final confirmError = Validators.validateConfirmPassword(
+      event.password,
+      event.confirmPassword,
+    );
+    if (confirmError != null) {
+      emit(AuthFailure(confirmError));
+      return;
+    }
+
+    if (event.companyName.trim().isEmpty) {
+      emit(const AuthFailure('Company Name is required.'));
+      return;
+    }
+    
+    if (event.hrName.trim().isEmpty) {
+      emit(const AuthFailure('HR Name is required.'));
+      return;
+    }
+
+    if (event.hrContact.trim().isEmpty) {
+      emit(const AuthFailure('HR Contact is required.'));
+      return;
+    }
+
+    emit(const AuthLoading());
+
+    try {
+      final response = await authRepository.signUpCompany(
+        username: event.username,
+        email: event.email,
+        password: event.password,
+        companyName: event.companyName,
+        hrName: event.hrName,
+        hrContact: event.hrContact,
+        website: event.website,
+        description: event.description,
+        incorporationCertPath: event.incorporationCertPath,
+        pitchDeckPath: event.pitchDeckPath,
+      );
+
+      if (response.user != null) {
+        emit(const CompanyRegistrationSuccess());
       } else {
         emit(const AuthFailure('Registration failed. Please try again.'));
       }

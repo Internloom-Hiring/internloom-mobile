@@ -34,6 +34,57 @@ class AuthRepository {
     );
   }
 
+  /// Signs up a company, inserting into profiles and companies table.
+  /// Skips actual file upload for now due to missing storage bucket.
+  Future<AuthResponse> signUpCompany({
+    required String username,
+    required String email,
+    required String password,
+    required String companyName,
+    required String hrName,
+    required String hrContact,
+    String? website,
+    String? description,
+    String? incorporationCertPath,
+    String? pitchDeckPath,
+  }) async {
+    // 1. Sign up the user
+    final response = await _supabase.auth.signUp(
+      email: email.trim(),
+      password: password,
+      data: {'full_name': hrName.trim()},
+    );
+
+    final user = response.user;
+    if (user != null) {
+      // 2. Insert into profiles
+      await _supabase.from('profiles').insert({
+        'id': user.id,
+        'username': username.trim(),
+        'role': 'company',
+        'is_active': true,
+      });
+
+      // 3. (Skipped) File uploads would go here, updating incorporationCertPath / pitchDeckPath
+      // PENDING: Storage bucket needs to be created first (e.g. company-verification-docs)
+
+      // 4. Insert into companies
+      await _supabase.from('companies').insert({
+        'profile_id': user.id,
+        'company_name': companyName.trim(),
+        'hr_name': hrName.trim(),
+        'hr_contact': hrContact.trim(),
+        'website': website?.trim(),
+        'description': description?.trim(),
+        'incorporation_cert_path': incorporationCertPath,
+        'pitch_deck_path': pitchDeckPath,
+        // approval_status uses default 'pending'
+      });
+    }
+
+    return response;
+  }
+
   /// Signs in with email and password
   Future<AuthResponse> signInWithEmailPassword({
     required String email,
