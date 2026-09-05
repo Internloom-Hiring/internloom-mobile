@@ -67,20 +67,24 @@ class _CandidateListScreenState extends State<CandidateListScreen> {
 
     try {
       final double? minCgpa = double.tryParse(_cgpaController.text.trim());
-      final String? college = _collegeController.text.trim().isNotEmpty ? _collegeController.text.trim() : null;
-      
+      final String? college =
+          _collegeController.text.trim().isNotEmpty ? _collegeController.text.trim() : null;
+
       final String skillsText = _skillsController.text.trim();
-      final List<String>? skills = skillsText.isNotEmpty 
-          ? skillsText.split(',').map((e) => e.trim()).toList() 
+      final List<String>? skills = skillsText.isNotEmpty
+          ? skillsText
+              .split(',')
+              .map((e) => e.trim())
+              .where((s) => s.isNotEmpty)
+              .toList()
           : null;
 
       final params = <String, dynamic>{'p_drive_id': widget.driveId};
       if (minCgpa != null) params['p_min_cgpa'] = minCgpa;
       if (college != null) params['p_college'] = college;
-      if (skills != null) params['p_skills'] = skills;
+      if (skills != null && skills.isNotEmpty) params['p_skills'] = skills;
 
-      // Note: Live testing may show this empty state unexpectedly until the
-      // schema owner fixes the missing SELECT RLS policy on the `students` table.
+      // Note: Live testing may show empty state if RLS on students table blocks SELECT
       final response = await Supabase.instance.client.rpc(
         'get_ranked_candidates',
         params: params,
@@ -102,8 +106,19 @@ class _CandidateListScreenState extends State<CandidateListScreen> {
     }
   }
 
+  void _clearFilters() {
+    _cgpaController.clear();
+    _collegeController.clear();
+    _skillsController.clear();
+    _fetchCandidates();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final hasActiveFilters = _cgpaController.text.isNotEmpty ||
+        _collegeController.text.isNotEmpty ||
+        _skillsController.text.isNotEmpty;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -124,14 +139,26 @@ class _CandidateListScreenState extends State<CandidateListScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
+      body: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Column(
+            children: [
           if (_driveDetails != null)
             Container(
               color: AppColors.white,
               child: ExpansionTile(
-                title: const Text('Job Details', style: TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text(_driveDetails!['job_title'] ?? 'N/A', style: const TextStyle(color: AppColors.textSecondary)),
+                title: Text(
+                  _driveDetails!['job_title'] ?? 'Job Details',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                ),
+                subtitle: Text(
+                  [
+                    if (_driveDetails!['ctc'] != null) _driveDetails!['ctc'],
+                    if (_driveDetails!['location'] != null) _driveDetails!['location'],
+                  ].join(' • '),
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                ),
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -151,45 +178,80 @@ class _CandidateListScreenState extends State<CandidateListScreen> {
                 ],
               ),
             ),
-          _buildFilterSection(),
+          _buildFilterSection(hasActiveFilters),
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
                 : _error != null
-                    ? Center(child: Text('Error: $_error', style: const TextStyle(color: AppColors.error)))
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppSpacing.md),
+                          child: Text(
+                            'Error: $_error',
+                            style: const TextStyle(color: AppColors.error),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      )
                     : _candidates.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Padding(
-                              padding: EdgeInsets.all(AppSpacing.lg),
-                              // Note: Live testing may show this empty state unexpectedly until the
-                              // schema owner fixes the missing SELECT RLS policy on the `students` table.
-                              child: Text(
-                                'No candidates match your filters.',
-                                style: TextStyle(color: AppColors.textSecondary),
-                                textAlign: TextAlign.center,
+                              padding: const EdgeInsets.all(AppSpacing.lg),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.people_outline,
+                                    size: 48,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                  const SizedBox(height: AppSpacing.sm),
+                                  const Text(
+                                    'No candidates match your criteria.',
+                                    style: TextStyle(
+                                      color: AppColors.textPrimary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  if (hasActiveFilters) ...[
+                                    const SizedBox(height: AppSpacing.sm),
+                                    TextButton(
+                                      onPressed: _clearFilters,
+                                      child: const Text('Clear Filters'),
+                                    ),
+                                  ],
+                                ],
                               ),
                             ),
                           )
                         : ListView.separated(
                             padding: const EdgeInsets.all(AppSpacing.md),
                             itemCount: _candidates.length,
-                            separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.sm),
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(height: AppSpacing.sm),
                             itemBuilder: (context, index) {
                               final candidate = _candidates[index];
                               final finalScore = candidate['final_score']?.toString() ?? 'N/A';
-                              // Since student SELECT policy is missing, these fields might be null during live test
                               final name = candidate['name'] ?? 'Hidden by RLS';
-                              final studentCollege = candidate['college_name'] ?? 'Unknown College';
+                              final studentCollege =
+                                  candidate['college_name'] ?? 'Unknown College';
                               final cgpa = candidate['cgpa']?.toString() ?? 'N/A';
 
                               return Card(
                                 color: AppColors.cardBackground,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.sm)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(AppSpacing.sm),
+                                  side: const BorderSide(color: AppColors.border),
+                                ),
+                                elevation: 0,
                                 child: InkWell(
                                   borderRadius: BorderRadius.circular(AppSpacing.sm),
                                   onTap: () {
-                                    final appId = candidate['application_id']?.toString() ?? '';
-                                    final stdId = candidate['student_id']?.toString() ?? '';
+                                    final appId =
+                                        candidate['application_id']?.toString() ?? '';
+                                    final stdId =
+                                        candidate['student_id']?.toString() ?? '';
                                     if (appId.isNotEmpty && stdId.isNotEmpty) {
                                       context.pushNamed(
                                         RouteNames.companyCandidateDetail,
@@ -203,66 +265,97 @@ class _CandidateListScreenState extends State<CandidateListScreen> {
                                     child: Row(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              name,
-                                              style: const TextStyle(
-                                                color: AppColors.textPrimary,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                name,
+                                                style: const TextStyle(
+                                                  color: AppColors.textPrimary,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                ),
                                               ),
-                                            ),
-                                            const SizedBox(height: AppSpacing.xs),
-                                            Text(
-                                              studentCollege,
-                                              style: const TextStyle(color: AppColors.textSecondary),
-                                            ),
-                                            const SizedBox(height: AppSpacing.xs),
-                                            Text(
-                                              'CGPA: $cgpa',
-                                              style: const TextStyle(color: AppColors.textSecondary),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.greenLight,
-                                          borderRadius: BorderRadius.circular(AppSpacing.sm),
-                                        ),
-                                        child: Text(
-                                          'Match: $finalScore',
-                                          style: const TextStyle(
-                                            color: AppColors.primaryDark,
-                                            fontWeight: FontWeight.bold,
+                                              const SizedBox(height: AppSpacing.xs),
+                                              Text(
+                                                studentCollege,
+                                                style: const TextStyle(
+                                                    color: AppColors.textSecondary),
+                                              ),
+                                              const SizedBox(height: AppSpacing.xs),
+                                              Text(
+                                                'CGPA: $cgpa',
+                                                style: const TextStyle(
+                                                    color: AppColors.textSecondary),
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: AppSpacing.sm,
+                                            vertical: AppSpacing.xs,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.greenLight,
+                                            borderRadius:
+                                                BorderRadius.circular(AppSpacing.sm),
+                                          ),
+                                          child: Text(
+                                            'Match: $finalScore',
+                                            style: const TextStyle(
+                                              color: AppColors.primaryDark,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
+                              );
+                            },
                           ),
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
-    );
-  }
+    ),
+  );
+}
 
-  Widget _buildFilterSection() {
+  Widget _buildFilterSection(bool hasActiveFilters) {
     return Container(
       color: AppColors.white,
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Filters', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Filter Candidates',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              if (hasActiveFilters)
+                InkWell(
+                  onTap: _clearFilters,
+                  child: const Text(
+                    'Reset',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+            ],
+          ),
           const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
@@ -292,34 +385,34 @@ class _CandidateListScreenState extends State<CandidateListScreen> {
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _skillsController,
-                  decoration: const InputDecoration(
-                    labelText: 'Skills (comma separated)',
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                  ),
-                ),
+          // Skills filter field (wired to p_skills)
+          TextField(
+            controller: _skillsController,
+            decoration: const InputDecoration(
+              labelText: 'Required Skills (comma separated)',
+              hintText: 'e.g. Flutter, React, Python',
+              border: OutlineInputBorder(),
+              isDense: true,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          ElevatedButton(
+            onPressed: _fetchCandidates,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.white,
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppSpacing.sm),
               ),
-              const SizedBox(width: AppSpacing.sm),
-              ElevatedButton(
-                onPressed: _fetchCandidates,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.white,
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                ),
-                child: const Text('Apply'),
-              ),
-            ],
+            ),
+            child: const Text('Apply Filters'),
           ),
         ],
       ),
     );
   }
+
   Widget _buildDetailRow(String label, dynamic value) {
     final displayValue = value?.toString() ?? 'N/A';
     return Row(
